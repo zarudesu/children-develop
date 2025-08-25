@@ -12,7 +12,7 @@ let context: BrowserContext | null = null
 
 async function getBrowser(): Promise<Browser> {
   if (!browser) {
-    browser = await chromium.launch({
+    const launchOptions: any = {
       headless: true,
       args: [
         '--no-sandbox',
@@ -25,7 +25,9 @@ async function getBrowser(): Promise<Browser> {
         '--disable-renderer-backgrounding',
         '--disable-backgrounding-occluded-windows',
       ]
-    })
+    }
+
+    browser = await chromium.launch(launchOptions)
   }
   return browser
 }
@@ -141,8 +143,7 @@ export async function generatePDF(params: FilwordParams): Promise<Buffer> {
           left: '1cm', 
           right: '1cm' 
         },
-        preferCSSPageSize: true,
-        timeout: 30000
+        preferCSSPageSize: true
       })
       
       console.log(`PDF generated successfully in ${Date.now() - startTime}ms (${pdfBuffer.length} bytes)`)

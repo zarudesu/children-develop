@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  # Web service (Next.js)
+  web:
+    build:
+      context: ../../services/web
+      dockerfile: Dockerfile
+    container_name: childdev-web-local
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_APP_URL=http://localhost:3002
+      - PDF_SERVICE_URL=http://pdf:3001
+    ports:
+      - "3002:3002"
+    depends_on:
+      - pdf
+    restart: unless-stopped
+    networks:
+      - childdev-network
+
+  # PDF service
+  pdf:
+    image: childdev-pdf-playwright:latest
+    container_name: childdev-pdf-local
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - DEBUG=false
+      - SAVE_HTML_DEBUG=false
+    ports:
+      - "3001:3001"
+    restart: unless-stopped
+    networks:
+      - childdev-network
+
+networks:
+  childdev-network:
+    driver: bridge

@@ -6,8 +6,8 @@ WORKDIR /app
 # Install build dependencies
 RUN apk add --no-cache python3 make g++
 
-# Copy package files
-COPY package*.json ./
+# Copy package files and tsconfig
+COPY package*.json tsconfig.json ./
 RUN npm ci
 
 # Copy source code
@@ -16,38 +16,21 @@ COPY . .
 # Build the application
 RUN npm run build
 
-# Production stage
-FROM node:18-alpine AS runner
+# Production stage - используем официальный Playwright образ
+FROM mcr.microsoft.com/playwright:v1.40.0-jammy AS runner
 
 WORKDIR /app
 
-# Install Playwright dependencies
-RUN apk add --no-cache \
-    chromium \
-    nss \
-    freetype \
-    freetype-dev \
-    harfbuzz \
-    ca-certificates \
-    ttf-freefont \
-    && rm -rf /var/cache/apk/*
+# Copy built application and dependencies
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/src/templates ./templates
+COPY --from=builder /app/package*.json ./
 
-# Set Playwright to use installed Chromium
-ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
-ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser
+# Install only production dependencies (Playwright уже установлен в образе)
+RUN npm ci --only=production
 
-# Add non-root user
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 pdfservice
-
-# Copy built application
-COPY --from=builder --chown=pdfservice:nodejs /app/dist ./dist
-COPY --from=builder --chown=pdfservice:nodejs /app/templates ./templates
-COPY --from=builder --chown=pdfservice:nodejs /app/package*.json ./
-COPY --from=builder --chown=pdfservice:nodejs /app/node_modules ./node_modules
-
-# Switch to non-root user
-USER pdfservice
+# Create non-root user (pwuser уже существует в Playwright образе)
+USER pwuser
 
 # Expose port
 EXPOSE 3001

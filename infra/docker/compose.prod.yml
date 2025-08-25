@@ -1,45 +1,55 @@
 version: '3.8'
 
 services:
-  # Nginx reverse proxy
-  nginx:
-    image: nginx:alpine
-    container_name: childdev-nginx
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/ssl:/etc/nginx/ssl:ro
-      - ./nginx/logs:/var/log/nginx
-    depends_on:
-      - web
-      - pdf
-    restart: unless-stopped
-    networks:
-      - childdev-network
-
   # Web service (Next.js)
-  web:
+  childdev-web:
     build:
       context: ../../services/web
       dockerfile: Dockerfile
-    container_name: childdev-web
+    container_name: childdev-web-prod
     environment:
       - NODE_ENV=production
       - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
-      - PDF_SERVICE_URL=http://pdf:3001
-    depends_on:
-      - pdf
+      - PDF_SERVICE_URL=http://childdev-pdf:3001
     restart: unless-stopped
     networks:
       - childdev-network
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3002/api/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3002/children/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
+
+  # PDF service
+  childdev-pdf:
+    build:
+      context: ../../services/pdf
+      dockerfile: Dockerfile
+    container_name: childdev-pdf-prod
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - DEBUG=false
+      - SAVE_HTML_DEBUG=false
+    restart: unless-stopped
+    networks:
+      - childdev-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  childdev-network:
+    driver: bridge
+    name: childdev-prod-network
+
+volumes:
+  childdev-logs:
+    driver: local
   # PDF service
   pdf:
     build:

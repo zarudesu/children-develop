@@ -1,5 +1,5 @@
 node_modules
-src/
+dist/
 tests/
 coverage/
 .nyc_output/
@@ -9,7 +9,5 @@ coverage/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-tsconfig.json
 jest.config.js
 .eslintrc.js
-README.md
