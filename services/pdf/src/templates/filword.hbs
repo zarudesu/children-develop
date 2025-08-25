@@ -1,0 +1,30 @@
+<div class="header">
+    <h1>{{title}}</h1>
+    {{#unless isAnswerPage}}
+    <div class="words-list">
+        <strong>{{#each words}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}</strong>
+    </div>
+    {{/unless}}
+</div>
+
+<div class="grid-container">
+    <div class="filword-grid grid-{{gridSize}}">
+        {{#each grid}}
+        <div class="grid-row">
+            {{#each this}}
+            <div class="grid-cell{{#if isPartOfWord}} word-part{{/if}}" {{#if wordId}}data-word-id="{{wordId}}"{{/if}}>
+                {{letter}}
+            </div>
+            {{/each}}
+        </div>
+        {{/each}}
+    </div>
+</div>
+
+{{#if isAnswerPage}}
+<div style="margin-top: 8mm; text-align: center;">
+    <div style="font-size: 12px; color: #666;">
+        <strong>Найденные слова выделены жёлтым цветом</strong>
+    </div>
+</div>
+{{/if}}

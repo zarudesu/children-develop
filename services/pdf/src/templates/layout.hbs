@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Филворд - ChildDev</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 14px;
+            line-height: 1.4;
+            color: #000;
+            background: white;
+        }
+        
+        .page {
+            width: 210mm;
+            height: 297mm;
+            padding: 15mm;
+            margin: 0;
+            page-break-after: always;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .page:last-child {
+            page-break-after: avoid;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 10mm;
+        }
+        
+        .header h1 {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5mm;
+            color: #333;
+        }
+        
+        .words-list {
+            text-align: center;
+            margin-bottom: 8mm;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        .words-list strong {
+            font-weight: bold;
+        }
+        
+        .grid-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex: 1;
+        }
+        
+        .filword-grid {
+            display: inline-block;
+            border: 2px solid #000;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+        }
+        
+        .grid-row {
+            display: flex;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .grid-cell {
+            width: var(--cell-size);
+            height: var(--cell-size);
+            border: 1px solid #666;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--font-size);
+            font-weight: bold;
+            background: white;
+        }
+        
+        /* Размеры для разных сеток */
+        .grid-10 {
+            --cell-size: 12mm;
+            --font-size: 16px;
+        }
+        
+        .grid-14 {
+            --cell-size: 10mm;
+            --font-size: 14px;
+        }
+        
+        .grid-18 {
+            --cell-size: 8mm;
+            --font-size: 12px;
+        }
+        
+        .grid-24 {
+            --cell-size: 6mm;
+            --font-size: 10px;
+        }
+        
+        /* Выделение для страницы ответов */
+        .answer-page .grid-cell.word-part {
+            background-color: #ffeb3b !important;
+            color: #000;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 5mm;
+            font-size: 10px;
+            color: #666;
+        }
+        
+        @media print {
+            .page {
+                margin: 0;
+                width: 210mm;
+                height: 297mm;
+            }
+            
+            body {
+                margin: 0;
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Страница задания -->
+    <div class="page">
+        {{{taskPage}}}
+        <div class="footer">
+            ChildDev.io — Генератор образовательных заданий
+        </div>
+    </div>
+    
+    <!-- Страница ответов -->
+    <div class="page answer-page">
+        {{{answerPage}}}
+        <div class="footer">
+            ChildDev.io — Страница ответов
+        </div>
+    </div>
+</body>
+</html>
