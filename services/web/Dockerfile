@@ -3,14 +3,12 @@ FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files
+# Copy package files first for better caching
 COPY package*.json ./
-RUN npm ci
+RUN npm ci --silent
 
-# Copy source code
+# Copy source code and build
 COPY . .
-
-# Build the application
 RUN npm run build
 
 # Production stage
@@ -18,17 +16,17 @@ FROM node:18-alpine AS runner
 
 WORKDIR /app
 
-# Add non-root user
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+# Create system user
+RUN addgroup --system --gid 1001 nodejs \
+    && adduser --system --uid 1001 nextjs
 
-# Copy built application
+# Copy package.json and install ONLY production dependencies
+COPY --from=builder --chown=nextjs:nodejs /app/package*.json ./
+RUN npm ci --only=production --silent && npm cache clean --force
+
+# Copy built Next.js application
 COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/package*.json ./
-
-# Install production dependencies
-RUN npm ci --only=production && npm cache clean --force
 
 # Switch to non-root user
 USER nextjs
@@ -36,9 +34,9 @@ USER nextjs
 # Expose port
 EXPOSE 3002
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3002/ || exit 1
+# Add health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:3002/api/health || exit 1
 
-# Start the application
-CMD ["npm", "start"]
+# Start Next.js server
+CMD ["npm", "run", "start"]
