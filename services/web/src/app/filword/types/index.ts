@@ -27,7 +27,7 @@ export const PRESET_CATEGORIES: Record<string, { name: string; words: string[] }
     name: 'Цвета',
     words: [
       'красный', 'синий', 'жёлтый', 'зелёный', 'белый', 'чёрный', 
-      'серый', 'розовый', 'оранжевый', 'фиолетовый', 'голубой', 'коричневый'
+      'серый', 'розовый', 'голубой', 'бурый', 'алый', 'рыжий'
     ]
   },
   school: {
@@ -55,8 +55,8 @@ export const PRESET_CATEGORIES: Record<string, { name: string; words: string[] }
 
 // Лимиты для разных размеров сетки (более реалистичные)
 export const GRID_SIZE_LIMITS: Record<GridSize, { maxWords: number; maxWordLength: number }> = {
-  '10x10': { maxWords: 15, maxWordLength: 8 },   // 100 ячеек -> до 15 слов
-  '14x14': { maxWords: 25, maxWordLength: 10 },  // 196 ячеек -> до 25 слов  
-  '18x18': { maxWords: 35, maxWordLength: 12 },  // 324 ячейки -> до 35 слов
-  '24x24': { maxWords: 50, maxWordLength: 15 }   // 576 ячеек -> до 50 слов
+  '10x10': { maxWords: 12, maxWordLength: 8 },   // 100 ячеек -> до 12 слов (учитываем сложность пересечений)
+  '14x14': { maxWords: 20, maxWordLength: 10 },  // 196 ячеек -> до 20 слов  
+  '18x18': { maxWords: 30, maxWordLength: 12 },  // 324 ячейки -> до 30 слов
+  '24x24': { maxWords: 45, maxWordLength: 15 }   // 576 ячеек -> до 45 слов
 }

@@ -57,22 +57,40 @@ export class FilwordEngine {
   }
 
   private checkWordIsolation(word: string, row: number, col: number, direction: Direction): boolean {
+    // В филворде слова могут пересекаться, поэтому убираем строгую изоляцию
+    // Проверяем только, что слово не начинается/заканчивается вплотную к другому слову в том же направлении
     const [deltaRow, deltaCol] = DIRECTION_VECTORS[direction]
     
-    // Проверяем клетки перед и после слова
+    // Проверяем клетки перед и после слова только в том же направлении
     const beforeRow = row - deltaRow
     const beforeCol = col - deltaCol
     const afterRow = row + (deltaRow * word.length)
     const afterCol = col + (deltaCol * word.length)
     
-    // Клетка перед словом должна быть свободной
-    if (this.isValidPosition(beforeRow, beforeCol) && this.grid[beforeRow][beforeCol].isPartOfWord) {
-      return false
+    // Клетка перед словом не должна быть частью слова в том же направлении
+    if (this.isValidPosition(beforeRow, beforeCol)) {
+      const beforeCell = this.grid[beforeRow][beforeCol]
+      if (beforeCell.isPartOfWord) {
+        // Проверяем, является ли это продолжением слова в том же направлении
+        const nextRow = beforeRow - deltaRow
+        const nextCol = beforeCol - deltaCol
+        if (this.isValidPosition(nextRow, nextCol) && this.grid[nextRow][nextCol].isPartOfWord) {
+          return false
+        }
+      }
     }
     
-    // Клетка после слова должна быть свободной  
-    if (this.isValidPosition(afterRow, afterCol) && this.grid[afterRow][afterCol].isPartOfWord) {
-      return false
+    // Клетка после слова не должна быть частью слова в том же направлении
+    if (this.isValidPosition(afterRow, afterCol)) {
+      const afterCell = this.grid[afterRow][afterCol]
+      if (afterCell.isPartOfWord) {
+        // Проверяем, является ли это продолжением слова в том же направлении
+        const nextRow = afterRow + deltaRow
+        const nextCol = afterCol + deltaCol
+        if (this.isValidPosition(nextRow, nextCol) && this.grid[nextRow][nextCol].isPartOfWord) {
+          return false
+        }
+      }
     }
     
     return true
@@ -148,27 +166,34 @@ export class FilwordEngine {
   }
 
   public generateGrid(words: string[], directions: FilwordParams['directions']): FilwordGrid {
+    // Сбрасываем состояние  
+    this.grid = this.initializeGrid()
+    this.placedWords = []
     this.availableDirections = this.getAvailableDirections(directions)
     
     if (this.availableDirections.length === 0) {
       throw new Error('No directions specified')
     }
 
-    // Сортируем слова по длине (длинные первыми для лучшего размещения)
-    const sortedWords = [...words].sort((a, b) => b.length - a.length)
+    // Пытаемся разместить слова несколько раз с разными стратегиями
+    const maxAttempts = 5
+    let attempt = 0
     
-    // Размещаем слова
-    for (let i = 0; i < sortedWords.length; i++) {
-      const word = sortedWords[i]
-      const positions = this.findPlacementPositions(word)
-      
-      if (positions.length === 0) {
-        throw new Error(`Word placement failed: cannot place "${word}"`)
+    while (attempt < maxAttempts) {
+      try {
+        this.attemptPlacement(words, attempt)
+        break // Успешно разместили все слова
+      } catch (error) {
+        attempt++
+        if (attempt >= maxAttempts) {
+          // В последней попытке разрешаем частичное размещение
+          this.attemptPlacement(words, attempt, true)
+          break
+        }
+        // Сбрасываем и пробуем заново
+        this.grid = this.initializeGrid()
+        this.placedWords = []
       }
-      
-      // Берём первую доступную позицию (уже перемешана)
-      const position = positions[0]
-      this.placeWord(word, position.row, position.col, position.direction, i)
     }
     
     // Заполняем пустые клетки случайными буквами
@@ -178,6 +203,47 @@ export class FilwordEngine {
       grid: this.grid,
       placedWords: this.placedWords,
       size: this.size
+    }
+  }
+
+  private attemptPlacement(words: string[], attempt: number, allowPartial: boolean = false): void {
+    // Сортируем слова по длине (длинные первыми для лучшего размещения)
+    const sortedWords = [...words].sort((a, b) => b.length - a.length)
+    
+    // В каждой попытке перемешиваем слова по-разному для большей вариативности
+    if (attempt > 0) {
+      for (let i = sortedWords.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [sortedWords[i], sortedWords[j]] = [sortedWords[j], sortedWords[i]]
+      }
+    }
+    
+    let placedCount = 0
+    
+    // Размещаем слова
+    for (let i = 0; i < sortedWords.length; i++) {
+      const word = sortedWords[i]
+      const positions = this.findPlacementPositions(word)
+      
+      if (positions.length === 0) {
+        if (!allowPartial) {
+          throw new Error(`Word placement failed: cannot place "${word}"`)
+        }
+        // В режиме частичного размещения просто пропускаем слово
+        console.warn(`Skipping word "${word}" - no available positions`)
+        continue
+      }
+      
+      // Берём случайную позицию из доступных (для большей вариативности)
+      const randomIndex = Math.floor(Math.random() * positions.length)
+      const position = positions[randomIndex]
+      this.placeWord(word, position.row, position.col, position.direction, placedCount)
+      placedCount++
+    }
+    
+    // Проверяем, что разместили достаточно слов (минимум 80%)
+    if (!allowPartial && placedCount < Math.floor(sortedWords.length * 0.8)) {
+      throw new Error(`Too few words placed: ${placedCount}/${sortedWords.length}`)
     }
   }
 }
