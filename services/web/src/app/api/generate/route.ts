@@ -2,10 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { validateFilwordParams } from '../../filword/utils/validation'
 import { FilwordParams } from '../../filword/types'
 
-const PDF_SERVICE_URL = process.env.PDF_SERVICE_URL || 'http://localhost:3001'
-
 export async function POST(request: NextRequest) {
   try {
+    // Получаем URL PDF сервиса в runtime, а не при сборке
+    const PDF_SERVICE_URL = process.env.PDF_SERVICE_URL || 'http://localhost:3001'
+    console.log('PDF_SERVICE_URL:', PDF_SERVICE_URL)
+    
     // Парсинг и валидация запроса
     const body = await request.json() as FilwordParams
     
