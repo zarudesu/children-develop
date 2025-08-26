@@ -78,8 +78,13 @@ export async function generatePDF(params: FilwordParams): Promise<Buffer> {
     
     try {
       // Загрузка и компиляция шаблонов
-      const layoutTemplate = readFileSync(join(__dirname, '../templates/layout.hbs'), 'utf8')
-      const filwordTemplate = readFileSync(join(__dirname, '../templates/filword.hbs'), 'utf8')
+      // В production шаблоны находятся в /app/templates, в dev - относительно src
+      const templatesPath = process.env.NODE_ENV === 'production' 
+        ? join(process.cwd(), 'templates') 
+        : join(__dirname, '../templates')
+      
+      const layoutTemplate = readFileSync(join(templatesPath, 'layout.hbs'), 'utf8')
+      const filwordTemplate = readFileSync(join(templatesPath, 'filword.hbs'), 'utf8')
       
       const compiledLayout = Handlebars.compile(layoutTemplate)
       const compiledFilword = Handlebars.compile(filwordTemplate)
