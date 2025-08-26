@@ -7,9 +7,7 @@ const nextConfig = {
   output: 'standalone',
   compress: true,
   poweredByHeader: false,
-  env: {
-    PDF_SERVICE_URL: process.env.PDF_SERVICE_URL || 'http://localhost:3001',
-  },
+  // Убираем env секцию - будем читать переменные в runtime через process.env
 }
 
 module.exports = nextConfig
