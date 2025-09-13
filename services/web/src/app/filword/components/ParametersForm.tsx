@@ -13,21 +13,23 @@ interface ParametersFormProps {
 }
 
 const GRID_SIZES = [
-  { value: '10x10' as const, label: '10×10', description: 'Очень простой', cellsCount: 100, estimatedTime: '10-15 сек' },
-  { value: '12x12' as const, label: '12×12', description: 'Простой', cellsCount: 144, estimatedTime: '12-18 сек' },
+  // Популярные размеры (показываются первыми)
+  { value: '10x10' as const, label: '10×10', description: 'Простой', cellsCount: 100, estimatedTime: '10-15 сек' },
   { value: '14x14' as const, label: '14×14', description: 'Средний', cellsCount: 196, estimatedTime: '15-25 сек' },
-  { value: '16x16' as const, label: '16×16', description: 'Сложный', cellsCount: 256, estimatedTime: '20-30 сек' },
+  { value: '18x18' as const, label: '18×18', description: 'Сложный', cellsCount: 324, estimatedTime: '25-35 сек' },
+  { value: '24x24' as const, label: '24×24', description: 'Очень сложный', cellsCount: 576, estimatedTime: '35-45 сек' },
+  // Остальные размеры
   { value: '11x11' as const, label: '11×11', description: 'Легкий+', cellsCount: 121, estimatedTime: '11-16 сек' },
-  { value: '13x13' as const, label: '13×13', description: 'Простой+', cellsCount: 169, estimatedTime: '13-22 сек' },
+  { value: '12x12' as const, label: '12×12', description: 'Простой+', cellsCount: 144, estimatedTime: '12-18 сек' },
+  { value: '13x13' as const, label: '13×13', description: 'Простой++', cellsCount: 169, estimatedTime: '13-22 сек' },
   { value: '15x15' as const, label: '15×15', description: 'Средний+', cellsCount: 225, estimatedTime: '18-28 сек' },
-  { value: '17x17' as const, label: '17×17', description: 'Сложный+', cellsCount: 289, estimatedTime: '22-32 сек' },
-  { value: '18x18' as const, label: '18×18', description: 'Очень сложный', cellsCount: 324, estimatedTime: '25-35 сек' },
-  { value: '19x19' as const, label: '19×19', description: 'Продвинутый', cellsCount: 361, estimatedTime: '27-38 сек' },
-  { value: '20x20' as const, label: '20×20', description: 'Экстремальный', cellsCount: 400, estimatedTime: '30-40 сек' },
-  { value: '21x21' as const, label: '21×21', description: 'Экспертный', cellsCount: 441, estimatedTime: '32-42 сек' },
-  { value: '22x22' as const, label: '22×22', description: 'Мега сложный', cellsCount: 484, estimatedTime: '35-45 сек' },
-  { value: '23x23' as const, label: '23×23', description: 'Ультра', cellsCount: 529, estimatedTime: '37-47 сек' },
-  { value: '24x24' as const, label: '24×24', description: 'Чемпион', cellsCount: 576, estimatedTime: '40-50 сек' },
+  { value: '16x16' as const, label: '16×16', description: 'Средний++', cellsCount: 256, estimatedTime: '20-30 сек' },
+  { value: '17x17' as const, label: '17×17', description: 'Сложный-', cellsCount: 289, estimatedTime: '22-32 сек' },
+  { value: '19x19' as const, label: '19×19', description: 'Сложный+', cellsCount: 361, estimatedTime: '27-38 сек' },
+  { value: '20x20' as const, label: '20×20', description: 'Сложный++', cellsCount: 400, estimatedTime: '30-40 сек' },
+  { value: '21x21' as const, label: '21×21', description: 'Экспертный-', cellsCount: 441, estimatedTime: '32-42 сек' },
+  { value: '22x22' as const, label: '22×22', description: 'Экспертный', cellsCount: 484, estimatedTime: '35-45 сек' },
+  { value: '23x23' as const, label: '23×23', description: 'Экспертный+', cellsCount: 529, estimatedTime: '37-47 сек' },
   { value: '25x25' as const, label: '25×25', description: 'Максимальный', cellsCount: 625, estimatedTime: '42-60 сек' },
 ]
 
