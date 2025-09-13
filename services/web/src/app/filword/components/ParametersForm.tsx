@@ -167,73 +167,40 @@ export default function ParametersForm({
             <h3 className="text-lg font-medium text-gray-900">Размер сетки</h3>
           </div>
           
-          <div className="space-y-3">
-            {/* Популярные размеры */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {GRID_SIZES.slice(0, 4).map((size) => (
-                <button
-                  key={size.value}
-                  type="button"
-                  onClick={() => handleGridSizeChange(size.value)}
-                  className={clsx(
-                    'p-3 text-center rounded-lg border-2 transition-all hover:shadow-sm',
-                    params.gridSize === size.value
-                      ? 'border-blue-500 bg-blue-50 shadow-sm'
-                      : 'border-gray-200 bg-white hover:border-gray-300'
-                  )}
-                >
-                  <div className="space-y-1">
-                    <span className="font-semibold text-gray-900 block">{size.label}</span>
-                    <p className="text-xs text-gray-600">{size.description}</p>
-                    <p className="text-xs text-gray-500">
-                      {size.cellsCount} ячеек
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {GRID_SIZES.slice(0, 4).map((size) => (
+              <button
+                key={size.value}
+                type="button"
+                onClick={() => handleGridSizeChange(size.value)}
+                className={clsx(
+                  'p-3 text-left rounded-lg border-2 transition-all hover:shadow-sm',
+                  params.gridSize === size.value
+                    ? 'border-blue-500 bg-blue-50 shadow-sm'
+                    : 'border-gray-200 bg-white hover:border-gray-300'
+                )}
+              >
+                <div className="flex justify-between items-start">
+                  <div>
+                    <span className="font-semibold text-gray-900">{size.label}</span>
+                    <p className="text-sm text-gray-600">{size.description}</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {size.cellsCount} ячеек • ~{size.value === '10x10' ? '10-15' : size.value === '14x14' ? '15-25' : size.value === '18x18' ? '25-35' : '35-45'} сек
                     </p>
-                    {params.gridSize === size.value && (
-                      <span className="text-blue-500 text-sm">✓</span>
-                    )}
                   </div>
-                </button>
-              ))}
-            </div>
-
-            {/* Дополнительные размеры */}
-            <details className="group">
-              <summary className="cursor-pointer text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1">
-                <span>Показать все размеры (до 25×25)</span>
-                <span className="group-open:rotate-90 transition-transform">▶</span>
-              </summary>
-              
-              <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-2">
-                {GRID_SIZES.slice(4).map((size) => (
-                  <button
-                    key={size.value}
-                    type="button"
-                    onClick={() => handleGridSizeChange(size.value)}
-                    className={clsx(
-                      'p-2 text-center rounded-lg border-2 transition-all hover:shadow-sm text-sm',
-                      params.gridSize === size.value
-                        ? 'border-blue-500 bg-blue-50 shadow-sm'
-                        : 'border-gray-200 bg-white hover:border-gray-300'
-                    )}
-                  >
-                    <div className="space-y-1">
-                      <span className="font-semibold text-gray-900 block">{size.label}</span>
-                      <p className="text-xs text-gray-600">{size.description}</p>
-                      {params.gridSize === size.value && (
-                        <span className="text-blue-500 text-xs">✓</span>
-                      )}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </details>
+                  {params.gridSize === size.value && (
+                    <span className="text-blue-500 text-lg">✓</span>
+                  )}
+                </div>
+              </button>
+            ))}
           </div>
         </div>
 
         {/* Размер шрифта */}
         <div className="card">
           <div className="flex items-center gap-2 mb-3">
-            <span className="text-lg">🔍</span>
+            <span className="text-lg">🔤</span>
             <h3 className="text-lg font-medium text-gray-900">Размер шрифта</h3>
           </div>
           
@@ -244,23 +211,33 @@ export default function ParametersForm({
                 type="button"
                 onClick={() => handleFontSizeChange(key as FontSize)}
                 className={clsx(
-                  'p-3 text-center rounded-lg border-2 transition-all hover:shadow-sm',
+                  'p-4 text-center rounded-lg border-2 transition-all hover:shadow-sm',
                   params.fontSize === key
-                    ? 'border-purple-500 bg-purple-50'
+                    ? 'border-blue-500 bg-blue-50'
                     : 'border-gray-200 bg-white hover:border-gray-300'
                 )}
               >
-                <div className="space-y-2">
-                  <span className="font-semibold text-gray-900 block">{fontSetting.name}</span>
-                  <span 
-                    className="text-gray-700 font-mono block font-bold"
-                    style={{ fontSize: `${Math.max(14, fontSetting.baseFontSize - 2)}px` }}
-                  >
-                    АБВ
-                  </span>
+                <div className="space-y-3">
+                  <span className="font-medium text-gray-900 block text-sm">{fontSetting.name}</span>
+                  
+                  {/* Пример с сеткой букв */}
+                  <div className="bg-gray-100 rounded p-2 inline-block">
+                    <div className="grid grid-cols-3 gap-1">
+                      {['К', 'О', 'Т', 'С', 'О', 'Н', 'Ы', 'Р', 'А'].map((letter, index) => (
+                        <div 
+                          key={index}
+                          className="w-6 h-6 border border-gray-300 flex items-center justify-center bg-white font-bold"
+                          style={{ fontSize: `${Math.max(10, fontSetting.baseFontSize - 6)}px` }}
+                        >
+                          {letter}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
                   <p className="text-xs text-gray-600">{fontSetting.description}</p>
                   {params.fontSize === key && (
-                    <span className="text-purple-500 text-lg">✓</span>
+                    <span className="text-blue-500 text-sm">✓</span>
                   )}
                 </div>
               </button>
