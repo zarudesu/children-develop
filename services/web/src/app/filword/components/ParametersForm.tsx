@@ -169,33 +169,68 @@ export default function ParametersForm({
             <h3 className="text-lg font-medium text-gray-900">Размер сетки</h3>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {GRID_SIZES.slice(0, 4).map((size) => (
-              <button
-                key={size.value}
-                type="button"
-                onClick={() => handleGridSizeChange(size.value)}
-                className={clsx(
-                  'p-3 text-left rounded-lg border-2 transition-all hover:shadow-sm',
-                  params.gridSize === size.value
-                    ? 'border-blue-500 bg-blue-50 shadow-sm'
-                    : 'border-gray-200 bg-white hover:border-gray-300'
-                )}
-              >
-                <div className="flex justify-between items-start">
-                  <div>
-                    <span className="font-semibold text-gray-900">{size.label}</span>
-                    <p className="text-sm text-gray-600">{size.description}</p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {size.cellsCount} ячеек • ~{size.value === '10x10' ? '10-15' : size.value === '14x14' ? '15-25' : size.value === '18x18' ? '25-35' : '35-45'} сек
-                    </p>
-                  </div>
-                  {params.gridSize === size.value && (
-                    <span className="text-blue-500 text-lg">✓</span>
+          <div className="space-y-4">
+            {/* Популярные размеры */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {GRID_SIZES.slice(0, 4).map((size) => (
+                <button
+                  key={size.value}
+                  type="button"
+                  onClick={() => handleGridSizeChange(size.value)}
+                  className={clsx(
+                    'p-3 text-left rounded-lg border-2 transition-all hover:shadow-sm',
+                    params.gridSize === size.value
+                      ? 'border-blue-500 bg-blue-50 shadow-sm'
+                      : 'border-gray-200 bg-white hover:border-gray-300'
                   )}
-                </div>
-              </button>
-            ))}
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <span className="font-semibold text-gray-900">{size.label}</span>
+                      <p className="text-sm text-gray-600">{size.description}</p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {size.cellsCount} ячеек • ~{size.value === '10x10' ? '10-15' : size.value === '14x14' ? '15-25' : size.value === '18x18' ? '25-35' : '35-45'} сек
+                      </p>
+                    </div>
+                    {params.gridSize === size.value && (
+                      <span className="text-blue-500 text-lg">✓</span>
+                    )}
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            {/* Дополнительные размеры */}
+            <details className="group">
+              <summary className="cursor-pointer text-sm text-blue-600 hover:text-blue-800 flex items-center gap-2 font-medium">
+                <span>Дополнительные размеры (11×11 до 25×25)</span>
+                <span className="group-open:rotate-90 transition-transform text-xs">▶</span>
+              </summary>
+              
+              <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                {GRID_SIZES.slice(4).map((size) => (
+                  <button
+                    key={size.value}
+                    type="button"
+                    onClick={() => handleGridSizeChange(size.value)}
+                    className={clsx(
+                      'p-2 text-center rounded-lg border-2 transition-all hover:shadow-sm text-sm',
+                      params.gridSize === size.value
+                        ? 'border-blue-500 bg-blue-50 shadow-sm'
+                        : 'border-gray-200 bg-white hover:border-gray-300'
+                    )}
+                  >
+                    <div className="space-y-1">
+                      <span className="font-semibold text-gray-900 block">{size.label}</span>
+                      <p className="text-xs text-gray-600">{size.description}</p>
+                      {params.gridSize === size.value && (
+                        <span className="text-blue-500 text-xs">✓</span>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </details>
           </div>
         </div>
 
@@ -206,7 +241,7 @@ export default function ParametersForm({
             <h3 className="text-lg font-medium text-gray-900">Размер шрифта</h3>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {Object.entries(FONT_SIZE_SETTINGS).map(([key, fontSetting]) => (
               <button
                 key={key}
@@ -224,12 +259,12 @@ export default function ParametersForm({
                   
                   {/* Пример с сеткой букв */}
                   <div className="bg-gray-100 rounded p-2 inline-block">
-                    <div className="grid grid-cols-3 gap-1">
+                    <div className="grid grid-cols-3 gap-0.5">
                       {['К', 'О', 'Т', 'С', 'О', 'Н', 'Ы', 'Р', 'А'].map((letter, index) => (
                         <div 
                           key={index}
-                          className="w-6 h-6 border border-gray-300 flex items-center justify-center bg-white font-bold"
-                          style={{ fontSize: `${Math.max(10, fontSetting.baseFontSize - 6)}px` }}
+                          className="w-8 h-8 border border-gray-400 flex items-center justify-center bg-white font-bold"
+                          style={{ fontSize: `${Math.max(14, fontSetting.baseFontSize - 2)}px` }}
                         >
                           {letter}
                         </div>
@@ -337,46 +372,35 @@ export default function ParametersForm({
             <h3 className="text-lg font-medium text-gray-900">Слова для поиска</h3>
           </div>
           
-          {/* Готовые категории */}
+          {/* Пример готовой категории */}
           <div className="mb-4">
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-sm font-medium text-gray-700">Готовые категории:</span>
-              <button
-                type="button"
-                onClick={() => setExpandedSection(expandedSection === 'categories' ? null : 'categories')}
-                className="text-xs text-blue-600 hover:text-blue-800"
-              >
-                {expandedSection === 'categories' ? 'Скрыть' : 'Показать все'}
-              </button>
+              <span className="text-sm font-medium text-gray-700">Пример готовой категории:</span>
             </div>
             
-            <div className={clsx(
-              'grid gap-2 transition-all duration-300',
-              expandedSection === 'categories' 
-                ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' 
-                : 'grid-cols-1 sm:grid-cols-2'
-            )}>
+            <div className="grid gap-2 grid-cols-1">
               {Object.entries(PRESET_CATEGORIES)
-                .slice(0, expandedSection === 'categories' ? undefined : 6)
+                .slice(0, 1)
                 .map(([key, category]) => (
                 <button
                   key={key}
                   type="button"
                   onClick={() => handleCategorySelect(key)}
                   className={clsx(
-                    'p-2 text-left rounded-lg border-2 transition-all hover:shadow-sm',
+                    'p-3 text-left rounded-lg border-2 transition-all hover:shadow-sm',
                     selectedCategory === key
                       ? 'border-green-500 bg-green-50'
                       : 'border-gray-200 bg-white hover:border-gray-300'
                   )}
                 >
-                  <div className="flex justify-between items-center">
+                  <div className="flex justify-between items-start">
                     <div>
-                      <span className="font-medium text-gray-900 text-sm">{category.name}</span>
-                      <p className="text-xs text-gray-600">{category.words.length} слов</p>
+                      <span className="font-medium text-gray-900">{category.name}</span>
+                      <p className="text-sm text-gray-600 mt-1">{category.words.length} слов: {category.words.slice(0, 8).join(', ')}{category.words.length > 8 ? '...' : ''}</p>
+                      <p className="text-xs text-gray-500 mt-1">💡 Больше готовых наборов будет в разделе с распечатками</p>
                     </div>
                     {selectedCategory === key && (
-                      <span className="text-green-500 text-sm">✓</span>
+                      <span className="text-green-500 text-lg">✓</span>
                     )}
                   </div>
                 </button>

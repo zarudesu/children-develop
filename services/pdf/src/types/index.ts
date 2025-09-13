@@ -1,6 +1,6 @@
 export type GridSize = '10x10' | '11x11' | '12x12' | '13x13' | '14x14' | '15x15' | '16x16' | '17x17' | '18x18' | '19x19' | '20x20' | '21x21' | '22x22' | '23x23' | '24x24' | '25x25'
 export type TextCase = 'upper' | 'lower' | 'mixed'
-export type FontSize = 'large' | 'medium' | 'small'
+export type FontSize = 'large' | 'medium' | 'small' | 'cursive'
 export type Direction = 'right' | 'left' | 'up' | 'down'
 
 export interface FilwordParams {

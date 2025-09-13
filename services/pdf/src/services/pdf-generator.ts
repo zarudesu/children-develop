@@ -100,6 +100,7 @@ export async function generatePDF(params: FilwordParams): Promise<Buffer> {
           }))
         ),
         gridSize: filwordData.size,
+        fontSize: params.fontSize,
         isAnswerPage: false,
         placedWords: filwordData.placedWords
       }
@@ -116,6 +117,7 @@ export async function generatePDF(params: FilwordParams): Promise<Buffer> {
           }))
         ),
         gridSize: filwordData.size,
+        fontSize: params.fontSize,
         isAnswerPage: true,
         placedWords: filwordData.placedWords
       }

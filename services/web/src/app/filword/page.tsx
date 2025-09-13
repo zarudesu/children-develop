@@ -86,34 +86,6 @@ export default function FilwordPage() {
         <FilwordGenerator />
       </div>
       
-      {/* Футер с дополнительной информацией */}
-      <div className="mt-16 bg-gray-50 border-t">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">
-              💡 Советы по использованию
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-gray-600">
-              <div className="bg-white p-4 rounded-lg">
-                <p className="font-medium text-gray-800 mb-1">Для детей 6-8 лет</p>
-                <p>Сетка 10×10, простые слова, 1-2 направления</p>
-              </div>
-              <div className="bg-white p-4 rounded-lg">
-                <p className="font-medium text-gray-800 mb-1">Для детей 9-12 лет</p>
-                <p>Сетка 14×14, разные категории, все направления</p>
-              </div>
-              <div className="bg-white p-4 rounded-lg">
-                <p className="font-medium text-gray-800 mb-1">Для подростков</p>
-                <p>Сетка 18×18+, сложные слова, смешанный регистр</p>
-              </div>
-              <div className="bg-white p-4 rounded-lg">
-                <p className="font-medium text-gray-800 mb-1">Тематические уроки</p>
-                <p>Используйте готовые категории или создавайте свои</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   )
 }

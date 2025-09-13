@@ -22,7 +22,7 @@
         .page {
             width: 210mm;
             height: 297mm;
-            padding: 15mm;
+            padding: 10mm 15mm 15mm 15mm; /* уменьшили верхнее поле */
             margin: 0;
             page-break-after: always;
             display: flex;
@@ -47,8 +47,8 @@
         
         .words-list {
             text-align: center;
-            margin-bottom: 8mm;
-            font-size: 14px;
+            margin-bottom: 6mm;
+            font-size: 16px;
             line-height: 1.6;
         }
         
@@ -65,7 +65,7 @@
         
         .filword-grid {
             display: inline-block;
-            border: 2px solid #000;
+            border: 1px solid #000;
             font-family: 'Courier New', Courier, monospace;
             font-weight: bold;
         }
@@ -79,7 +79,7 @@
         .grid-cell {
             width: var(--cell-size);
             height: var(--cell-size);
-            border: var(--border-width) solid #333;
+            border: var(--border-width) solid #666;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -89,41 +89,49 @@
             position: relative;
         }
         
-        /* Базовые размеры ячеек по размеру сетки - автоматически вычисляемые */
-        .grid-10 { --base-cell-size: 15mm; }
-        .grid-11 { --base-cell-size: 14mm; }
-        .grid-12 { --base-cell-size: 13mm; }
-        .grid-13 { --base-cell-size: 12mm; }
-        .grid-14 { --base-cell-size: 11mm; }
-        .grid-15 { --base-cell-size: 10.5mm; }
-        .grid-16 { --base-cell-size: 10mm; }
-        .grid-17 { --base-cell-size: 9.5mm; }
-        .grid-18 { --base-cell-size: 9mm; }
-        .grid-19 { --base-cell-size: 8.5mm; }
-        .grid-20 { --base-cell-size: 8mm; }
-        .grid-21 { --base-cell-size: 7.5mm; }
-        .grid-22 { --base-cell-size: 7.2mm; }
-        .grid-23 { --base-cell-size: 6.9mm; }
-        .grid-24 { --base-cell-size: 6.6mm; }
-        .grid-25 { --base-cell-size: 6.3mm; }
+        /* Базовые размеры ячеек - растянуты для лучшего заполнения листа */
+        .grid-10 { --base-cell-size: 17mm; }
+        .grid-11 { --base-cell-size: 15.5mm; }
+        .grid-12 { --base-cell-size: 14.5mm; }
+        .grid-13 { --base-cell-size: 13.5mm; }
+        .grid-14 { --base-cell-size: 12.5mm; }
+        .grid-15 { --base-cell-size: 11.5mm; }
+        .grid-16 { --base-cell-size: 11mm; }
+        .grid-17 { --base-cell-size: 10.5mm; }
+        .grid-18 { --base-cell-size: 10mm; }
+        .grid-19 { --base-cell-size: 9.5mm; }
+        .grid-20 { --base-cell-size: 9mm; }
+        .grid-21 { --base-cell-size: 8.5mm; }
+        .grid-22 { --base-cell-size: 8mm; }
+        .grid-23 { --base-cell-size: 7.5mm; }
+        .grid-24 { --base-cell-size: 7.2mm; }
+        .grid-25 { --base-cell-size: 6.8mm; }
         
-        /* Размеры шрифтов - педагогически обоснованные */
+        /* Размеры шрифтов - увеличены для лучшего заполнения ячеек */
         .font-large {
-            --font-size: 20px;
-            --cell-size: calc(var(--base-cell-size) * 1.3);
-            --border-width: 2px;
+            --font-size: calc(var(--base-cell-size) * 0.8);
+            --cell-size: var(--base-cell-size);
+            --border-width: 0.5px;
         }
         
         .font-medium {
-            --font-size: 16px;
-            --cell-size: calc(var(--base-cell-size) * 1.0);
-            --border-width: 1.5px;
+            --font-size: calc(var(--base-cell-size) * 0.7);
+            --cell-size: var(--base-cell-size);
+            --border-width: 0.5px;
         }
         
         .font-small {
-            --font-size: 14px;
-            --cell-size: calc(var(--base-cell-size) * 0.85);
-            --border-width: 1px;
+            --font-size: calc(var(--base-cell-size) * 0.6);
+            --cell-size: var(--base-cell-size);
+            --border-width: 0.5px;
+        }
+        
+        .font-cursive {
+            --font-size: calc(var(--base-cell-size) * 0.75);
+            --cell-size: var(--base-cell-size);
+            --border-width: 0.5px;
+            font-family: 'Lucida Handwriting', 'Brush Script MT', cursive !important;
+            font-style: italic;
         }
         
         /* Адаптивные размеры для крупных сеток с крупным шрифтом */
@@ -149,6 +157,41 @@
         .answer-page .grid-cell.word-part {
             background-color: #ffeb3b !important;
             color: #000;
+        }
+        
+        /* Линии для записи слов */
+        .writing-lines {
+            margin-top: 8mm;
+            margin-bottom: 5mm;
+        }
+        
+        .writing-lines h3 {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 4mm;
+            text-align: left;
+        }
+        
+        .lines-container {
+            display: flex;
+            flex-direction: column;
+            gap: 5mm;
+        }
+        
+        .line {
+            height: 1px;
+            border-bottom: 1px solid #333;
+            position: relative;
+        }
+        
+        .line::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: -1px;
+            width: 3mm;
+            height: 3px;
+            border-bottom: 1px solid #333;
         }
         
         .footer {

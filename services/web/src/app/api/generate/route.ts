@@ -46,11 +46,12 @@ export async function POST(request: NextRequest) {
     const pdfBuffer = await pdfResponse.arrayBuffer()
     
     // Возвращаем PDF с правильными заголовками
+    const filename = `filword-${body.gridSize}-${body.fontSize}-${body.words.length}слов-${Date.now()}.pdf`
     return new NextResponse(pdfBuffer, {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="filword-${body.gridSize}-${Date.now()}.pdf"`,
+        'Content-Disposition': `attachment; filename="${filename}"`,
         'Cache-Control': 'no-cache',
       },
     })

@@ -2,13 +2,13 @@
     <h1>{{title}}</h1>
     {{#unless isAnswerPage}}
     <div class="words-list">
-        <strong>{{#each words}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}</strong>
+        <strong>Найди слова: {{#each words}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}.</strong>
     </div>
     {{/unless}}
 </div>
 
 <div class="grid-container">
-    <div class="filword-grid grid-{{gridSize}}">
+    <div class="filword-grid grid-{{gridSize}} font-{{fontSize}}">
         {{#each grid}}
         <div class="grid-row">
             {{#each this}}
@@ -20,6 +20,19 @@
         {{/each}}
     </div>
 </div>
+
+{{#unless isAnswerPage}}
+<div class="writing-lines">
+    <h3>Найденные слова:</h3>
+    <div class="lines-container">
+        <div class="line"></div>
+        <div class="line"></div>
+        <div class="line"></div>
+        <div class="line"></div>
+        <div class="line"></div>
+    </div>
+</div>
+{{/unless}}
 
 {{#if isAnswerPage}}
 <div style="margin-top: 8mm; text-align: center;">
