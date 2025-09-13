@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { FilwordParams, PRESET_CATEGORIES } from '../types'
+import { FilwordParams, PRESET_CATEGORIES, FONT_SIZE_SETTINGS, FontSize } from '../types'
 import clsx from 'clsx'
 
 interface ParametersFormProps {
@@ -13,10 +13,22 @@ interface ParametersFormProps {
 }
 
 const GRID_SIZES = [
-  { value: '10x10' as const, label: '10×10', description: 'Простой', cellsCount: 100, estimatedTime: '10-15 сек' },
+  { value: '10x10' as const, label: '10×10', description: 'Очень простой', cellsCount: 100, estimatedTime: '10-15 сек' },
+  { value: '12x12' as const, label: '12×12', description: 'Простой', cellsCount: 144, estimatedTime: '12-18 сек' },
   { value: '14x14' as const, label: '14×14', description: 'Средний', cellsCount: 196, estimatedTime: '15-25 сек' },
-  { value: '18x18' as const, label: '18×18', description: 'Сложный', cellsCount: 324, estimatedTime: '25-35 сек' },
-  { value: '24x24' as const, label: '24×24', description: 'Очень сложный', cellsCount: 576, estimatedTime: '35-45 сек' },
+  { value: '16x16' as const, label: '16×16', description: 'Сложный', cellsCount: 256, estimatedTime: '20-30 сек' },
+  { value: '11x11' as const, label: '11×11', description: 'Легкий+', cellsCount: 121, estimatedTime: '11-16 сек' },
+  { value: '13x13' as const, label: '13×13', description: 'Простой+', cellsCount: 169, estimatedTime: '13-22 сек' },
+  { value: '15x15' as const, label: '15×15', description: 'Средний+', cellsCount: 225, estimatedTime: '18-28 сек' },
+  { value: '17x17' as const, label: '17×17', description: 'Сложный+', cellsCount: 289, estimatedTime: '22-32 сек' },
+  { value: '18x18' as const, label: '18×18', description: 'Очень сложный', cellsCount: 324, estimatedTime: '25-35 сек' },
+  { value: '19x19' as const, label: '19×19', description: 'Продвинутый', cellsCount: 361, estimatedTime: '27-38 сек' },
+  { value: '20x20' as const, label: '20×20', description: 'Экстремальный', cellsCount: 400, estimatedTime: '30-40 сек' },
+  { value: '21x21' as const, label: '21×21', description: 'Экспертный', cellsCount: 441, estimatedTime: '32-42 сек' },
+  { value: '22x22' as const, label: '22×22', description: 'Мега сложный', cellsCount: 484, estimatedTime: '35-45 сек' },
+  { value: '23x23' as const, label: '23×23', description: 'Ультра', cellsCount: 529, estimatedTime: '37-47 сек' },
+  { value: '24x24' as const, label: '24×24', description: 'Чемпион', cellsCount: 576, estimatedTime: '40-50 сек' },
+  { value: '25x25' as const, label: '25×25', description: 'Максимальный', cellsCount: 625, estimatedTime: '42-60 сек' },
 ]
 
 const DIRECTIONS = [
@@ -69,6 +81,12 @@ export default function ParametersForm({
 
   const handleTextCaseChange = (textCase: FilwordParams['textCase']) => {
     const newParams = { ...params, textCase }
+    setParams(newParams)
+    onParamsChange(newParams)
+  }
+
+  const handleFontSizeChange = (fontSize: FontSize) => {
+    const newParams = { ...params, fontSize }
     setParams(newParams)
     onParamsChange(newParams)
   }
@@ -149,29 +167,100 @@ export default function ParametersForm({
             <h3 className="text-lg font-medium text-gray-900">Размер сетки</h3>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {GRID_SIZES.map((size) => (
+          <div className="space-y-3">
+            {/* Популярные размеры */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {GRID_SIZES.slice(0, 4).map((size) => (
+                <button
+                  key={size.value}
+                  type="button"
+                  onClick={() => handleGridSizeChange(size.value)}
+                  className={clsx(
+                    'p-3 text-center rounded-lg border-2 transition-all hover:shadow-sm',
+                    params.gridSize === size.value
+                      ? 'border-blue-500 bg-blue-50 shadow-sm'
+                      : 'border-gray-200 bg-white hover:border-gray-300'
+                  )}
+                >
+                  <div className="space-y-1">
+                    <span className="font-semibold text-gray-900 block">{size.label}</span>
+                    <p className="text-xs text-gray-600">{size.description}</p>
+                    <p className="text-xs text-gray-500">
+                      {size.cellsCount} ячеек
+                    </p>
+                    {params.gridSize === size.value && (
+                      <span className="text-blue-500 text-sm">✓</span>
+                    )}
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            {/* Дополнительные размеры */}
+            <details className="group">
+              <summary className="cursor-pointer text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1">
+                <span>Показать все размеры (до 25×25)</span>
+                <span className="group-open:rotate-90 transition-transform">▶</span>
+              </summary>
+              
+              <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-2">
+                {GRID_SIZES.slice(4).map((size) => (
+                  <button
+                    key={size.value}
+                    type="button"
+                    onClick={() => handleGridSizeChange(size.value)}
+                    className={clsx(
+                      'p-2 text-center rounded-lg border-2 transition-all hover:shadow-sm text-sm',
+                      params.gridSize === size.value
+                        ? 'border-blue-500 bg-blue-50 shadow-sm'
+                        : 'border-gray-200 bg-white hover:border-gray-300'
+                    )}
+                  >
+                    <div className="space-y-1">
+                      <span className="font-semibold text-gray-900 block">{size.label}</span>
+                      <p className="text-xs text-gray-600">{size.description}</p>
+                      {params.gridSize === size.value && (
+                        <span className="text-blue-500 text-xs">✓</span>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </details>
+          </div>
+        </div>
+
+        {/* Размер шрифта */}
+        <div className="card">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-lg">🔍</span>
+            <h3 className="text-lg font-medium text-gray-900">Размер шрифта</h3>
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {Object.entries(FONT_SIZE_SETTINGS).map(([key, fontSetting]) => (
               <button
-                key={size.value}
+                key={key}
                 type="button"
-                onClick={() => handleGridSizeChange(size.value)}
+                onClick={() => handleFontSizeChange(key as FontSize)}
                 className={clsx(
-                  'p-3 text-left rounded-lg border-2 transition-all hover:shadow-sm',
-                  params.gridSize === size.value
-                    ? 'border-blue-500 bg-blue-50 shadow-sm'
+                  'p-3 text-center rounded-lg border-2 transition-all hover:shadow-sm',
+                  params.fontSize === key
+                    ? 'border-purple-500 bg-purple-50'
                     : 'border-gray-200 bg-white hover:border-gray-300'
                 )}
               >
-                <div className="flex justify-between items-start">
-                  <div>
-                    <span className="font-semibold text-gray-900">{size.label}</span>
-                    <p className="text-sm text-gray-600">{size.description}</p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {size.cellsCount} ячеек • ~{size.estimatedTime}
-                    </p>
-                  </div>
-                  {params.gridSize === size.value && (
-                    <span className="text-blue-500 text-lg">✓</span>
+                <div className="space-y-2">
+                  <span className="font-semibold text-gray-900 block">{fontSetting.name}</span>
+                  <span 
+                    className="text-gray-700 font-mono block font-bold"
+                    style={{ fontSize: `${Math.max(14, fontSetting.baseFontSize - 2)}px` }}
+                  >
+                    АБВ
+                  </span>
+                  <p className="text-xs text-gray-600">{fontSetting.description}</p>
+                  {params.fontSize === key && (
+                    <span className="text-purple-500 text-lg">✓</span>
                   )}
                 </div>
               </button>
@@ -392,9 +481,9 @@ export default function ParametersForm({
         <div className="card bg-gradient-to-r from-gray-50 to-blue-50 border-gray-200">
           <div className="space-y-3">
             {/* Сводка настроек */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-center">
               <div>
-                <p className="text-xs text-gray-600">Размер</p>
+                <p className="text-xs text-gray-600">Размер сетки</p>
                 <p className="font-semibold text-gray-900">{params.gridSize}</p>
               </div>
               <div>
@@ -409,6 +498,12 @@ export default function ParametersForm({
                 <p className="text-xs text-gray-600">Регистр</p>
                 <p className="font-semibold text-gray-900">
                   {TEXT_CASES.find(tc => tc.key === params.textCase)?.example}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-600">Размер шрифта</p>
+                <p className="font-semibold text-gray-900">
+                  {FONT_SIZE_SETTINGS[params.fontSize].name}
                 </p>
               </div>
             </div>

@@ -79,34 +79,70 @@
         .grid-cell {
             width: var(--cell-size);
             height: var(--cell-size);
-            border: 1px solid #666;
+            border: var(--border-width) solid #333;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: var(--font-size);
             font-weight: bold;
             background: white;
+            position: relative;
         }
         
-        /* Размеры для разных сеток */
-        .grid-10 {
-            --cell-size: 12mm;
+        /* Базовые размеры ячеек по размеру сетки - автоматически вычисляемые */
+        .grid-10 { --base-cell-size: 15mm; }
+        .grid-11 { --base-cell-size: 14mm; }
+        .grid-12 { --base-cell-size: 13mm; }
+        .grid-13 { --base-cell-size: 12mm; }
+        .grid-14 { --base-cell-size: 11mm; }
+        .grid-15 { --base-cell-size: 10.5mm; }
+        .grid-16 { --base-cell-size: 10mm; }
+        .grid-17 { --base-cell-size: 9.5mm; }
+        .grid-18 { --base-cell-size: 9mm; }
+        .grid-19 { --base-cell-size: 8.5mm; }
+        .grid-20 { --base-cell-size: 8mm; }
+        .grid-21 { --base-cell-size: 7.5mm; }
+        .grid-22 { --base-cell-size: 7.2mm; }
+        .grid-23 { --base-cell-size: 6.9mm; }
+        .grid-24 { --base-cell-size: 6.6mm; }
+        .grid-25 { --base-cell-size: 6.3mm; }
+        
+        /* Размеры шрифтов - педагогически обоснованные */
+        .font-large {
+            --font-size: 20px;
+            --cell-size: calc(var(--base-cell-size) * 1.3);
+            --border-width: 2px;
+        }
+        
+        .font-medium {
             --font-size: 16px;
+            --cell-size: calc(var(--base-cell-size) * 1.0);
+            --border-width: 1.5px;
         }
         
-        .grid-14 {
-            --cell-size: 10mm;
+        .font-small {
             --font-size: 14px;
+            --cell-size: calc(var(--base-cell-size) * 0.85);
+            --border-width: 1px;
         }
         
-        .grid-18 {
-            --cell-size: 8mm;
-            --font-size: 12px;
+        /* Адаптивные размеры для крупных сеток с крупным шрифтом */
+        .grid-18.font-large, .grid-19.font-large, .grid-20.font-large,
+        .grid-21.font-large, .grid-22.font-large, .grid-23.font-large,
+        .grid-24.font-large, .grid-25.font-large {
+            --cell-size: calc(var(--base-cell-size) * 1.1); /* меньше увеличение для больших сеток */
+            --font-size: 18px; /* немного меньше шрифт для очень больших сеток */
         }
         
-        .grid-24 {
-            --cell-size: 6mm;
-            --font-size: 10px;
+        /* Специальная настройка для очень больших сеток */
+        .grid-22.font-large, .grid-23.font-large, .grid-24.font-large, .grid-25.font-large {
+            --font-size: 16px; /* еще меньше для максимальных размеров */
+        }
+        
+        /* Улучшенная читаемость для средних размеров больших сеток */
+        .grid-20.font-medium, .grid-21.font-medium, .grid-22.font-medium,
+        .grid-23.font-medium, .grid-24.font-medium, .grid-25.font-medium {
+            --font-size: 14px; /* оптимальный размер для больших сеток */
         }
         
         /* Выделение для страницы ответов */

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { FilwordParams, GridSize, TextCase } from '../types'
+import { FilwordParams, GridSize, TextCase, FontSize } from '../types'
 import { validateFilwordParams } from '../utils/validation'
 import ParametersForm from './ParametersForm'
 import ResultsDisplay from './ResultsDisplay'
@@ -17,6 +17,7 @@ export default function FilwordGenerator() {
       down: true,
     },
     textCase: 'upper',
+    fontSize: 'large', // По умолчанию крупный шрифт для лучшей читаемости
   })
   
   const [isGenerating, setIsGenerating] = useState(false)

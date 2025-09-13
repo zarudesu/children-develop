@@ -1,5 +1,6 @@
-export type GridSize = '10x10' | '14x14' | '18x18' | '24x24'
+export type GridSize = '10x10' | '11x11' | '12x12' | '13x13' | '14x14' | '15x15' | '16x16' | '17x17' | '18x18' | '19x19' | '20x20' | '21x21' | '22x22' | '23x23' | '24x24' | '25x25'
 export type TextCase = 'upper' | 'lower' | 'mixed'
+export type FontSize = 'large' | 'medium' | 'small'
 export type Direction = 'right' | 'left' | 'up' | 'down'
 
 export interface FilwordParams {
@@ -12,6 +13,7 @@ export interface FilwordParams {
     down: boolean
   }
   textCase: TextCase
+  fontSize: FontSize
 }
 
 export interface GridCell {
@@ -39,6 +41,7 @@ export interface TemplateData {
   words: string[]
   grid: GridCell[][]
   gridSize: number
+  fontSize: FontSize
   isAnswerPage: boolean
   placedWords: PlacedWord[]
 }
@@ -46,9 +49,21 @@ export interface TemplateData {
 // Размеры сеток
 export const GRID_SIZES: Record<GridSize, number> = {
   '10x10': 10,
+  '11x11': 11,
+  '12x12': 12,
+  '13x13': 13,
   '14x14': 14,
+  '15x15': 15,
+  '16x16': 16,
+  '17x17': 17,
   '18x18': 18,
-  '24x24': 24
+  '19x19': 19,
+  '20x20': 20,
+  '21x21': 21,
+  '22x22': 22,
+  '23x23': 23,
+  '24x24': 24,
+  '25x25': 25
 }
 
 // Направления как векторы
