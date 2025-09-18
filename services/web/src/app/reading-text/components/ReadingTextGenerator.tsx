@@ -43,12 +43,37 @@ export default function ReadingTextGenerator({
   }
 
   const handleGenerate = () => {
+    // Валидация перед отправкой
+    const wordCount = params.inputText.trim().split(/\s+/).filter(w => w.length > 0).length
+
+    if (wordCount < 3) {
+      alert('Текст должен содержать минимум 3 слова')
+      return
+    }
+
+    if (params.inputText.trim().length < 10) {
+      alert('Текст должен содержать минимум 10 символов')
+      return
+    }
+
+    if (!/[а-яё]/i.test(params.inputText)) {
+      alert('Текст должен содержать кириллические символы')
+      return
+    }
+
     if (onGenerate) {
       onGenerate(params)
     }
   }
 
   const typeInfo = TEXT_TYPE_DESCRIPTIONS[params.textType]
+
+  // Проверки для визуальной валидации
+  const wordCount = params.inputText.trim().split(/\s+/).filter(w => w.length > 0).length
+  const hasEnoughWords = wordCount >= 3
+  const hasEnoughChars = params.inputText.trim().length >= 10
+  const hasCyrillic = /[а-яё]/i.test(params.inputText)
+  const isValidInput = hasEnoughWords && hasEnoughChars && hasCyrillic
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-6 max-w-4xl mx-auto">
@@ -297,16 +322,25 @@ export default function ReadingTextGenerator({
               rows={8}
               className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
             />
-            <div className="mt-1 text-xs text-gray-500">
-              Символов: {params.inputText.length} |
-              Слов: {params.inputText.split(/\s+/).filter(w => w.length > 0).length}
+            <div className="mt-1 text-xs">
+              <span className={hasEnoughChars ? 'text-green-600' : 'text-red-500'}>
+                Символов: {params.inputText.length} (мин. 10)
+              </span>
+              {' | '}
+              <span className={hasEnoughWords ? 'text-green-600' : 'text-red-500'}>
+                Слов: {wordCount} (мин. 3)
+              </span>
+              {' | '}
+              <span className={hasCyrillic ? 'text-green-600' : 'text-red-500'}>
+                {hasCyrillic ? '✓ Кириллица' : '✗ Нужна кириллица'}
+              </span>
             </div>
           </div>
 
           {/* Кнопка генерации */}
           <button
             onClick={handleGenerate}
-            disabled={loading || !params.inputText.trim()}
+            disabled={loading || !isValidInput}
             className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
           >
             {loading ? 'Создание PDF...' : 'Создать упражнение'}
