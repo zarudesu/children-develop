@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>{{title}}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 2cm;
+            line-height: 1.6;
+        }
+        .title {
+            font-size: 18pt;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .exercise-text {
+            font-size: 14pt;
+            line-height: 1.8;
+            padding: 20px;
+            border: 1px solid #ccc;
+            margin: 20px 0;
+        }
+        .metadata {
+            font-size: 10pt;
+            color: #666;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    {{#if title}}
+    <div class="title">{{title}}</div>
+    {{/if}}
+
+    <div class="metadata">
+        <p>Тип: {{type}} | Слов: {{metadata.wordsCount}} | Сложность: {{metadata.difficulty}}</p>
+    </div>
+
+    <div class="exercise-text">
+        {{{transformedText}}}
+    </div>
+
+    {{#if originalText}}
+    <div style="page-break-before: always;">
+        <div class="title">Исходный текст</div>
+        <div class="exercise-text">
+            {{originalText}}
+        </div>
+    </div>
+    {{/if}}
+</body>
+</html>

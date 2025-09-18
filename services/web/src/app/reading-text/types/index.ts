@@ -1,9 +1,3 @@
-export type GridSize = '10x10' | '11x11' | '12x12' | '13x13' | '14x14' | '15x15' | '16x16' | '17x17' | '18x18' | '19x19' | '20x20' | '21x21' | '22x22' | '23x23' | '24x24' | '25x25'
-export type TextCase = 'upper' | 'lower' | 'mixed'
-export type FontSize = 'large' | 'medium' | 'small' | 'cursive'
-export type Direction = 'right' | 'left' | 'up' | 'down'
-
-// Типы для конструктора текстов
 export type ReadingTextType =
   | 'normal'              // 1. Обычный текст
   | 'bottom-cut'          // 2. Текст не дописанный снизу
@@ -18,40 +12,8 @@ export type ReadingTextType =
   | 'mixed-types'         // 11. Смешанный тип ("сборная солянка")
   | 'word-ladder'         // 12. Лесенка из слов
 
-export type GeneratorType = 'filword' | 'reading-text'
-
-export interface FilwordParams {
-  words: string[]
-  gridSize: GridSize
-  directions: {
-    right: boolean
-    left: boolean
-    up: boolean
-    down: boolean
-  }
-  textCase: TextCase
-  fontSize: FontSize
-}
-
-export interface GridCell {
-  letter: string
-  isPartOfWord: boolean
-  wordId?: number
-}
-
-export interface PlacedWord {
-  word: string
-  startRow: number
-  startCol: number
-  direction: Direction
-  id: number
-}
-
-export interface FilwordGrid {
-  grid: GridCell[][]
-  placedWords: PlacedWord[]
-  size: number
-}
+export type FontSize = 'large' | 'medium' | 'small'
+export type TextCase = 'upper' | 'lower' | 'mixed'
 
 export interface ReadingTextParams {
   // Основные параметры
@@ -77,64 +39,43 @@ export interface ReadingTextParams {
   customInstructions?: string
 }
 
-export interface GenerateRequest {
-  type: GeneratorType
-  params: FilwordParams | ReadingTextParams
-}
-
-export interface TemplateData {
-  title: string
-  words: string[]
-  grid: GridCell[][]
-  gridSize: number
-  fontSize: FontSize
-  isAnswerPage: boolean
-  placedWords: PlacedWord[]
-}
-
-export interface ReadingTextTemplateData {
-  type: ReadingTextType
-  title?: string
-  centerTitle: boolean
-  originalText: string
-  transformedText: string
-  fontSize: FontSize
-  pageNumbers: boolean
-  includeInstructions: boolean
-  instructions?: string
+// Результат обработки текста
+export interface ProcessedText {
+  original: string
+  transformed: string
   metadata: {
+    type: ReadingTextType
     wordsCount: number
     charactersCount: number
-    difficulty: 'easy' | 'medium' | 'hard'
+    transformationDetails?: Record<string, any>
   }
 }
 
-// Размеры сеток
-export const GRID_SIZES: Record<GridSize, number> = {
-  '10x10': 10,
-  '11x11': 11,
-  '12x12': 12,
-  '13x13': 13,
-  '14x14': 14,
-  '15x15': 15,
-  '16x16': 16,
-  '17x17': 17,
-  '18x18': 18,
-  '19x19': 19,
-  '20x20': 20,
-  '21x21': 21,
-  '22x22': 22,
-  '23x23': 23,
-  '24x24': 24,
-  '25x25': 25
-}
-
-// Направления как векторы
-export const DIRECTION_VECTORS: Record<Direction, [number, number]> = {
-  right: [0, 1],
-  left: [0, -1],
-  down: [1, 0],
-  up: [-1, 0]
+// Настройки для разных типов шрифтов
+export const FONT_SIZE_SETTINGS: Record<FontSize, {
+  name: string
+  description: string
+  baseFontSize: number
+  lineHeight: number
+}> = {
+  'large': {
+    name: 'Крупный',
+    description: 'Для начального обучения и проблем со зрением',
+    baseFontSize: 14,
+    lineHeight: 1.8
+  },
+  'medium': {
+    name: 'Средний',
+    description: 'Стандартный размер для школьников',
+    baseFontSize: 12,
+    lineHeight: 1.6
+  },
+  'small': {
+    name: 'Обычный',
+    description: 'Как в учебниках',
+    baseFontSize: 11,
+    lineHeight: 1.4
+  }
 }
 
 // Описания типов заданий
@@ -217,3 +158,15 @@ export const TEXT_TYPE_DESCRIPTIONS: Record<ReadingTextType, {
     purpose: 'Развитие плавности чтения'
   }
 }
+
+// Константы для алгоритмов
+export const CYRILLIC_VOWELS = ['а', 'е', 'ё', 'и', 'о', 'у', 'ы', 'э', 'ю', 'я']
+export const CYRILLIC_CONSONANTS = [
+  'б', 'в', 'г', 'д', 'ж', 'з', 'й', 'к', 'л', 'м', 'н', 'п', 'р', 'с', 'т', 'ф', 'х', 'ц', 'ч', 'ш', 'щ'
+]
+
+// Случайные буквы для вставки в extra-letters
+export const RANDOM_CYRILLIC_LETTERS = [
+  ...CYRILLIC_VOWELS,
+  ...CYRILLIC_CONSONANTS
+]

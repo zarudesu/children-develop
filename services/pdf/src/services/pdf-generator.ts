@@ -2,9 +2,10 @@ import { chromium, Browser, BrowserContext } from 'playwright'
 import { readFileSync } from 'fs'
 import { join } from 'path'
 import Handlebars from 'handlebars'
-import { FilwordParams, TemplateData } from '../types'
+import { FilwordParams, TemplateData, GenerateRequest, ReadingTextParams, ReadingTextTemplateData, TEXT_TYPE_DESCRIPTIONS } from '../types'
 import { FilwordEngine } from './filword-engine'
 import { applyTextCase } from '../utils/text-utils'
+import { TextTransformer } from './text-transformer'
 
 // Глобальные переменные для переиспользования браузера
 let browser: Browser | null = null
@@ -57,7 +58,20 @@ process.on('SIGTERM', async () => {
   process.exit(0)
 })
 
-export async function generatePDF(params: FilwordParams): Promise<Buffer> {
+export async function generatePDF(request: GenerateRequest | FilwordParams): Promise<Buffer> {
+  // Обратная совместимость: если передали FilwordParams напрямую
+  const requestData: GenerateRequest = 'type' in request
+    ? request as GenerateRequest
+    : { type: 'filword', params: request as FilwordParams }
+
+  if (requestData.type === 'reading-text') {
+    return generateReadingTextPDF(requestData.params as ReadingTextParams)
+  } else {
+    return generateFilwordPDF(requestData.params as FilwordParams)
+  }
+}
+
+async function generateFilwordPDF(params: FilwordParams): Promise<Buffer> {
   const startTime = Date.now()
   
   try {
@@ -164,6 +178,117 @@ export async function generatePDF(params: FilwordParams): Promise<Buffer> {
   } catch (error) {
     console.error('PDF generation failed:', error)
     throw error
+  }
+}
+
+async function generateReadingTextPDF(params: ReadingTextParams): Promise<Buffer> {
+  const startTime = Date.now()
+
+  try {
+    console.log(`Starting reading text PDF generation: ${params.textType}`)
+
+    // Трансформация текста
+    const transformedText = TextTransformer.transform(params.inputText, params.textType, {
+      cutPercentage: params.cutPercentage,
+      endingLength: params.endingLength,
+      reversedWordCount: params.reversedWordCount,
+      extraLetterDensity: params.extraLetterDensity,
+      textCase: params.textCase
+    })
+
+    // Подсчет метаданных
+    const words = params.inputText.trim().split(/\s+/).filter(w => w.length > 0)
+    const typeInfo = TEXT_TYPE_DESCRIPTIONS[params.textType]
+
+    // Получение браузера и контекста
+    const browserContext = await getContext()
+    const page = await browserContext.newPage()
+
+    try {
+      // Загрузка шаблона
+      const templatesPath = process.env.NODE_ENV === 'production'
+        ? join(process.cwd(), 'templates')
+        : join(__dirname, '../templates')
+
+      const templateContent = readFileSync(join(templatesPath, 'reading-text-simple.html'), 'utf8')
+
+      // Регистрация Handlebars хелперов
+      Handlebars.registerHelper('switch', function(this: any, value: any, options: any) {
+        this._switchValue = value
+        return options.fn(this)
+      })
+
+      Handlebars.registerHelper('case', function(this: any, value: any, options: any) {
+        if (value === this._switchValue) {
+          return options.fn(this)
+        }
+        return ''
+      })
+
+      Handlebars.registerHelper('eq', function(a: any, b: any) {
+        return a === b
+      })
+
+      const compiledTemplate = Handlebars.compile(templateContent)
+
+      // Подготовка данных для шаблона
+      const templateData: ReadingTextTemplateData = {
+        type: params.textType,
+        title: params.title || 'Упражнение на технику чтения',
+        centerTitle: params.centerTitle !== false,
+        originalText: params.inputText,
+        transformedText,
+        fontSize: params.fontSize,
+        pageNumbers: params.pageNumbers !== false,
+        includeInstructions: params.includeInstructions !== false,
+        instructions: params.customInstructions,
+        metadata: {
+          wordsCount: words.length,
+          charactersCount: params.inputText.length,
+          difficulty: typeInfo.difficulty
+        }
+      }
+
+      // Генерация HTML
+      const html = compiledTemplate(templateData)
+
+      console.log(`HTML generated for reading text in ${Date.now() - startTime}ms`)
+
+      // Загрузка HTML в браузер
+      await page.setContent(html, {
+        waitUntil: 'networkidle',
+        timeout: 30000
+      })
+
+      // Добавляем CSS стили для трансформаций
+      await page.addStyleTag({
+        content: TextTransformer.getTransformationStyles()
+      })
+
+      // Генерация PDF
+      const pdfBuffer = await page.pdf({
+        format: 'A4',
+        printBackground: true,
+        margin: {
+          top: '1.5cm',
+          bottom: '1.5cm',
+          left: '2cm',
+          right: '2cm'
+        },
+        preferCSSPageSize: true
+      })
+
+      console.log(`Reading text PDF generated successfully in ${Date.now() - startTime}ms (${pdfBuffer.length} bytes)`)
+
+      return pdfBuffer
+
+    } finally {
+      await page.close()
+    }
+
+  } catch (error) {
+    console.error('Reading text PDF generation failed:', error)
+    throw new Error(`text transformation failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
   }
 }
 

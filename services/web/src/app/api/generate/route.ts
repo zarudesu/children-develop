@@ -5,7 +5,7 @@ import { FilwordParams } from '../../filword/types'
 export async function POST(request: NextRequest) {
   try {
     // Получаем URL PDF сервиса в runtime, а не при сборке
-    const PDF_SERVICE_URL = process.env.PDF_SERVICE_URL || 'http://localhost:3001'
+    const PDF_SERVICE_URL = process.env.PDF_SERVICE_URL || 'http://127.0.0.1:3001'
     console.log('PDF_SERVICE_URL:', PDF_SERVICE_URL)
     
     // Парсинг и валидация запроса
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
     const pdfBuffer = await pdfResponse.arrayBuffer()
     
     // Возвращаем PDF с правильными заголовками
-    const filename = `filword-${body.gridSize}-${body.fontSize}-${body.words.length}слов-${Date.now()}.pdf`
+    const filename = `filword-${body.gridSize}-${body.fontSize}-${body.words.length}words-${Date.now()}.pdf`
     return new NextResponse(pdfBuffer, {
       status: 200,
       headers: {

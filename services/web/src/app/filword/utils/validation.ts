@@ -38,12 +38,12 @@ export function validateFilwordParams(params: FilwordParams): ValidationResult {
     }
   }
 
-  // Проверка кириллицы
-  const invalidWords = params.words.filter(word => !/^[а-яё]+$/i.test(word))
+  // Проверка символов (кириллица и латиница)
+  const invalidWords = params.words.filter(word => !/^[а-яёa-z]+$/i.test(word))
   if (invalidWords.length > 0) {
     return { 
       success: false, 
-      error: `Недопустимые символы в словах: ${invalidWords.join(', ')}. Используйте только русские буквы` 
+      error: `Недопустимые символы в словах: ${invalidWords.join(', ')}. Используйте только русские или английские буквы` 
     }
   }
 
@@ -68,6 +68,6 @@ export function normalizeWords(input: string): string[] {
     .split(/[,\n]/)
     .map(word => word.trim().toLowerCase())
     .filter(word => word.length >= 3)
-    .filter(word => /^[а-яё]+$/i.test(word))
+    .filter(word => /^[а-яёa-z]+$/i.test(word))
     .filter((word, index, arr) => arr.indexOf(word) === index) // убираем дубли
 }

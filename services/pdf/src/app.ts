@@ -1,7 +1,8 @@
 import express from 'express'
 import cors from 'cors'
 import { generatePDF } from './services/pdf-generator'
-import { validateRequest } from './utils/validation'
+import { validateRequest, validateReadingTextRequest } from './utils/validation'
+import { GenerateRequest, GeneratorType } from './types'
 
 const app = express()
 const PORT = process.env.PORT || 3001
@@ -49,14 +50,32 @@ app.get('/health', async (req, res) => {
 // Основной endpoint генерации PDF
 app.post('/generate', async (req, res) => {
   try {
+    const requestBody = req.body as GenerateRequest
+
     console.log('Received generation request:', {
-      words: req.body.words?.length,
-      gridSize: req.body.gridSize,
-      textCase: req.body.textCase
+      type: requestBody.type,
+      ...(requestBody.type === 'filword' && {
+        words: (requestBody.params as any).words?.length,
+        gridSize: (requestBody.params as any).gridSize,
+        textCase: (requestBody.params as any).textCase
+      }),
+      ...(requestBody.type === 'reading-text' && {
+        textType: (requestBody.params as any).textType,
+        textLength: (requestBody.params as any).inputText?.length,
+        fontSize: (requestBody.params as any).fontSize
+      })
     })
 
-    // Валидация
-    const validation = validateRequest(req.body)
+    // Валидация в зависимости от типа генератора
+    let validation: { success: boolean; error?: string }
+
+    if (requestBody.type === 'reading-text') {
+      validation = validateReadingTextRequest(requestBody.params)
+    } else {
+      // По умолчанию валидируем как филворд для обратной совместимости
+      validation = validateRequest(requestBody.params || requestBody)
+    }
+
     if (!validation.success) {
       return res.status(400).json({
         error: 'Validation failed',
@@ -65,27 +84,34 @@ app.post('/generate', async (req, res) => {
     }
 
     // Генерация PDF
-    const pdfBuffer = await generatePDF(req.body)
-    
+    const pdfBuffer = await generatePDF(requestBody)
+
     // Отправка PDF
     res.setHeader('Content-Type', 'application/pdf')
     res.setHeader('Content-Length', pdfBuffer.length)
     res.setHeader('Cache-Control', 'no-cache')
-    
+
     res.send(pdfBuffer)
-    
+
     console.log(`PDF generated successfully: ${pdfBuffer.length} bytes`)
-    
+
   } catch (error) {
     console.error('PDF generation error:', error)
-    
+
     if (error instanceof Error && error.message.includes('placement failed')) {
       return res.status(422).json({
         error: 'Word placement failed',
         message: 'Не удалось разместить все слова в сетке. Попробуйте уменьшить количество слов или увеличить размер сетки.'
       })
     }
-    
+
+    if (error instanceof Error && error.message.includes('text transformation failed')) {
+      return res.status(422).json({
+        error: 'Text transformation failed',
+        message: 'Ошибка обработки текста. Проверьте корректность входных данных.'
+      })
+    }
+
     res.status(500).json({
       error: 'Internal server error',
       message: 'Ошибка генерации PDF'

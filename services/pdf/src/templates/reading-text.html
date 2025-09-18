@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{title}}</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;700&display=swap');
+
+        /* Основные стили */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans', 'Roboto', Arial, sans-serif;
+            line-height: {{lineHeight}};
+            color: #000;
+            background: white;
+            padding: 20mm;
+        }
+
+        /* Размеры шрифтов */
+        .font-large {
+            font-size: 14pt;
+            line-height: 1.8;
+        }
+
+        .font-medium {
+            font-size: 12pt;
+            line-height: 1.6;
+        }
+
+        .font-small {
+            font-size: 11pt;
+            line-height: 1.4;
+        }
+
+        /* Заголовок */
+        .header {
+            text-align: {{centerTitle ? 'center' : 'left'}};
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .title {
+            font-size: 18pt;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .subtitle {
+            font-size: 12pt;
+            color: #666;
+            font-weight: 400;
+        }
+
+        /* Основной контент */
+        .content {
+            margin-bottom: 40px;
+        }
+
+        .exercise-text {
+            font-size: 14pt;
+            line-height: 1.8;
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+
+        .font-medium .exercise-text {
+            font-size: 12pt;
+            line-height: 1.6;
+        }
+
+        .font-small .exercise-text {
+            font-size: 11pt;
+            line-height: 1.4;
+        }
+
+        /* Специальные эффекты для трансформаций */
+        .bottom-cut {
+            overflow: hidden;
+            height: calc(1em * (1 - var(--cut-percentage, 40%) / 100));
+            display: inline-block;
+            vertical-align: bottom;
+        }
+
+        .top-cut {
+            overflow: hidden;
+            height: calc(1em * (1 - var(--cut-percentage, 40%) / 100));
+            display: inline-block;
+            vertical-align: top;
+            margin-top: calc(1em * var(--cut-percentage, 40%) / 100);
+        }
+
+        .extra-letter {
+            color: #888;
+            font-weight: normal;
+        }
+
+        .mirror-text {
+            transform: scaleX(-1);
+            display: inline-block;
+        }
+
+        /* Инструкции */
+        .instructions {
+            background: #f0f8ff;
+            border: 1px solid #b0d4f1;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .instructions-title {
+            font-size: 14pt;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #1e40af;
+        }
+
+        .instructions-text {
+            font-size: 11pt;
+            line-height: 1.5;
+            color: #1e40af;
+        }
+
+        .instructions ul {
+            list-style-type: disc;
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .instructions li {
+            margin-bottom: 8px;
+        }
+
+        /* Метаданные */
+        .metadata {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 10pt;
+            color: #6c757d;
+        }
+
+        .metadata-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .metadata-row:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Номера страниц */
+        .page-number {
+            position: fixed;
+            bottom: 15mm;
+            right: 20mm;
+            font-size: 10pt;
+            color: #666;
+        }
+
+        /* Разрыв страницы */
+        .page-break {
+            page-break-before: always;
+        }
+
+        /* Стили для печати */
+        @media print {
+            body {
+                padding: 15mm;
+            }
+
+            .page-break {
+                page-break-before: always;
+            }
+        }
+
+        /* Специальные стили для разных типов упражнений */
+        .text-type-word-ladder .exercise-text {
+            white-space: pre-line;
+            font-family: monospace;
+            background: #fff;
+            border: 2px solid #ddd;
+        }
+
+        .text-type-merged-text .exercise-text {
+            letter-spacing: 0.5px;
+            word-spacing: 0;
+        }
+
+        .text-type-missing-vowels .exercise-text,
+        .text-type-missing-endings .exercise-text {
+            font-family: monospace;
+            letter-spacing: 1px;
+        }
+
+        /* Подчеркивания для пропущенных букв */
+        .exercise-text {
+            --underscore-width: 0.8em;
+        }
+
+        /* Стили для разных уровней сложности */
+        .difficulty-easy {
+            border-left: 4px solid #10b981;
+        }
+
+        .difficulty-medium {
+            border-left: 4px solid #f59e0b;
+        }
+
+        .difficulty-hard {
+            border-left: 4px solid #ef4444;
+        }
+
+        /* Адаптивные размеры для мобильных устройств */
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+
+            .font-large { font-size: 16pt; }
+            .font-medium { font-size: 14pt; }
+            .font-small { font-size: 12pt; }
+        }
+    </style>
+</head>
+<body class="font-{{fontSize}} text-type-{{type}} difficulty-{{metadata.difficulty}}">
+    {{#if includeInstructions}}
+    <div class="instructions">
+        <div class="instructions-title">Как выполнять упражнение</div>
+        <div class="instructions-text">
+            <p>Прочитайте текст внимательно и выполните упражнение согласно заданию.</p>
+
+            <ul>
+                <li>Читайте в комфортном темпе</li>
+                <li>При затруднениях возвращайтесь к сложному фрагменту</li>
+                <li>Следите за пониманием смысла текста</li>
+                <li>После чтения попробуйте пересказать основную мысль</li>
+            </ul>
+        </div>
+    </div>
+    {{/if}}
+
+    {{#if title}}
+    <div class="header">
+        <div class="title">{{title}}</div>
+        <div class="subtitle">Упражнение на технику чтения</div>
+    </div>
+    {{/if}}
+
+    <div class="metadata">
+        <div class="metadata-row">
+            <span><strong>Тип упражнения:</strong></span>
+            <span>{{type}}</span>
+        </div>
+        <div class="metadata-row">
+            <span><strong>Количество слов:</strong></span>
+            <span>{{metadata.wordsCount}}</span>
+        </div>
+        <div class="metadata-row">
+            <span><strong>Сложность:</strong></span>
+            <span>{{metadata.difficulty}}</span>
+        </div>
+        <div class="metadata-row">
+            <span><strong>Размер шрифта:</strong></span>
+            <span>{{fontSize}}</span>
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="exercise-text">
+            {{{transformedText}}}
+        </div>
+    </div>
+
+    {{#if pageNumbers}}
+    <div class="page-number">1</div>
+    {{/if}}
+
+    <!-- Вторая страница с исходным текстом (опционально) -->
+    {{#if originalText}}
+    <div class="page-break">
+        {{#if title}}
+        <div class="header">
+            <div class="title">{{title}} — Исходный текст</div>
+            <div class="subtitle">Правильный вариант для сверки</div>
+        </div>
+        {{/if}}
+
+        <div class="content">
+            <div class="exercise-text" style="background: #f0f9ff; border-color: #0ea5e9;">
+                {{originalText}}
+            </div>
+        </div>
+
+        {{#if pageNumbers}}
+        <div class="page-number">2</div>
+        {{/if}}
+    </div>
+    {{/if}}
+</body>
+</html>
