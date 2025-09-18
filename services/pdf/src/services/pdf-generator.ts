@@ -212,22 +212,12 @@ async function generateReadingTextPDF(params: ReadingTextParams): Promise<Buffer
 
       const templateContent = readFileSync(join(templatesPath, 'reading-text-simple.html'), 'utf8')
 
-      // Регистрация Handlebars хелперов
-      Handlebars.registerHelper('switch', function(this: any, value: any, options: any) {
-        this._switchValue = value
-        return options.fn(this)
-      })
-
-      Handlebars.registerHelper('case', function(this: any, value: any, options: any) {
-        if (value === this._switchValue) {
-          return options.fn(this)
-        }
-        return ''
-      })
-
-      Handlebars.registerHelper('eq', function(a: any, b: any) {
-        return a === b
-      })
+      // Регистрация простых Handlebars хелперов (избегаем сложных конструкций)
+      if (!Handlebars.helpers.eq) {
+        Handlebars.registerHelper('eq', function(a: any, b: any) {
+          return a === b
+        })
+      }
 
       const compiledTemplate = Handlebars.compile(templateContent)
 
