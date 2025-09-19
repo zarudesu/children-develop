@@ -17,29 +17,23 @@ export async function POST(request: NextRequest) {
 
     // Парсинг запроса
     const body = await request.json() as GenerateRequest
-    console.log('API Request body:', JSON.stringify(body, null, 2))
 
     // Определяем тип запроса и валидируем
     let validationResult: { success: boolean; error?: string }
 
     if ('type' in body && body.type === 'reading-text') {
-      console.log('Processing as reading-text request')
       // Новый API для reading-text
       const validationData = validateReadingTextParams(body.params)
       validationResult = validationData.success
         ? { success: true }
         : { success: false, error: validationData.errors?.join(', ') || 'Ошибка валидации' }
     } else if ('type' in body && body.type === 'filword') {
-      console.log('Processing as filword request')
       // Новый API для filword
       validationResult = validateFilwordParams(body.params)
     } else {
-      console.log('Processing as legacy filword request (no type field)')
       // Обратная совместимость - считаем что это filword
       validationResult = validateFilwordParams(body as FilwordParams)
     }
-
-    console.log('Validation result:', validationResult)
 
     if (!validationResult.success) {
       return NextResponse.json(
@@ -103,7 +97,7 @@ export async function POST(request: NextRequest) {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="${filename}"`,
+        'Content-Disposition': `attachment; filename*=UTF-8''${encodeURIComponent(filename)}`,
         'Cache-Control': 'no-cache',
       },
     })

@@ -13,8 +13,7 @@ export default function ReadingTextPage() {
 
       console.log('Generating reading text with params:', params)
 
-      // Прямой вызов PDF сервиса (обход проблем с кешированием Next.js)
-      const response = await fetch('http://localhost:3001/generate', {
+      const response = await fetch('/api/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
