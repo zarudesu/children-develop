@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Тест обрезания текста</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 2cm;
+            line-height: 1.6;
+            font-size: 14pt;
+        }
+
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 2px solid #ccc;
+        }
+
+        /* Метод 1: фиксированная высота */
+        .bottom-cut-fixed {
+            overflow: hidden;
+            height: 8px; /* 40% от 20px = 8px */
+            display: inline-block;
+            vertical-align: bottom;
+            background: yellow;
+        }
+
+        /* Метод 2: CSS переменные */
+        .bottom-cut-var {
+            overflow: hidden;
+            height: calc(1em * (1 - var(--cut-percentage, 40%) / 100));
+            display: inline-block;
+            vertical-align: bottom;
+            background: lightblue;
+        }
+
+        /* Метод 3: clip-path */
+        .bottom-cut-clip {
+            display: inline-block;
+            clip-path: inset(0 0 60% 0);
+            background: lightgreen;
+        }
+
+        /* Метод 4: псевдоэлемент */
+        .bottom-cut-pseudo {
+            position: relative;
+            display: inline-block;
+            background: lightcoral;
+        }
+
+        .bottom-cut-pseudo::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60%;
+            background: white;
+        }
+
+        /* Для сравнения - обычный текст */
+        .normal-text {
+            background: lightgray;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <h1>Тест различных методов обрезания текста</h1>
+
+    <div class="test-section">
+        <h3>Обычный текст (для сравнения):</h3>
+        <span class="normal-text">Солнце ярко светило над зеленым лугом.</span>
+    </div>
+
+    <div class="test-section">
+        <h3>Метод 1 - Фиксированная высота (8px):</h3>
+        <span class="bottom-cut-fixed">Солнце ярко светило над зеленым лугом.</span>
+    </div>
+
+    <div class="test-section">
+        <h3>Метод 2 - CSS переменные (60% обрезание):</h3>
+        <span class="bottom-cut-var" style="--cut-percentage: 60">Солнце ярко светило над зеленым лугом.</span>
+    </div>
+
+    <div class="test-section">
+        <h3>Метод 3 - clip-path (60% обрезание снизу):</h3>
+        <span class="bottom-cut-clip">Солнце ярко светило над зеленым лугом.</span>
+    </div>
+
+    <div class="test-section">
+        <h3>Метод 4 - Псевдоэлемент:</h3>
+        <span class="bottom-cut-pseudo">Солнце ярко светило над зеленым лугом.</span>
+    </div>
+
+    <div class="test-section">
+        <h3>Debug info:</h3>
+        <p>Font size: 14pt</p>
+        <p>Line height: 1.6</p>
+        <p>Computed line height: ~22px</p>
+        <p>60% обрезание должно оставить ~9px высоты</p>
+    </div>
+</body>
+</html>

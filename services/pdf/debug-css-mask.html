@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Тест CSS Mask обрезания</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 2cm;
+            line-height: 1.6;
+        }
+        .title {
+            font-size: 18pt;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .exercise-text {
+            font-size: 14pt;
+            line-height: 1.8;
+            padding: 20px;
+            border: 1px solid #ccc;
+            margin: 20px 0;
+        }
+        .metadata {
+            font-size: 10pt;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        /* Стили для обрезания текста - CSS Mask метод */
+        .bottom-cut {
+            -webkit-mask: linear-gradient(to top, transparent 0%, transparent var(--cut-percentage, 40%), black var(--cut-percentage, 40%), black 100%);
+            mask: linear-gradient(to top, transparent 0%, transparent var(--cut-percentage, 40%), black var(--cut-percentage, 40%), black 100%);
+            display: inline-block;
+            background: #000;
+            color: #000;
+        }
+
+        .top-cut {
+            -webkit-mask: linear-gradient(to bottom, transparent 0%, transparent var(--cut-percentage, 40%), black var(--cut-percentage, 40%), black 100%);
+            mask: linear-gradient(to bottom, transparent 0%, transparent var(--cut-percentage, 40%), black var(--cut-percentage, 40%), black 100%);
+            display: inline-block;
+            background: #000;
+            color: #000;
+        }
+
+        /* Стили для других трансформаций */
+        .extra-letter {
+            color: #888;
+            font-weight: normal;
+        }
+
+        .mirror-text {
+            transform: scaleX(-1);
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="title">Тест CSS Mask обрезания</div>
+
+    <div class="metadata">
+        <p>Тип: bottom-cut | Слов: 10 | Сложность: easy</p>
+    </div>
+
+    <div class="exercise-text">
+        <span class="bottom-cut" style="--cut-percentage: 60%">Солнце ярко светило над зеленым лугом. Птицы пели веселые песни.</span>
+    </div>
+
+    <div style="page-break-before: always;">
+        <div class="title">Исходный текст</div>
+        <div class="exercise-text">
+            Солнце ярко светило над зеленым лугом. Птицы пели веселые песни.
+        </div>
+    </div>
+</body>
+</html>

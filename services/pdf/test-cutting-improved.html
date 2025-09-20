@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Улучшенный тест обрезания текста</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 2cm;
+            line-height: 1.6;
+            font-size: 16pt;
+        }
+
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 2px solid #333;
+            background: #f9f9f9;
+        }
+
+        .text-sample {
+            font-size: 18pt;
+            line-height: 1.4;
+            display: inline-block;
+            margin: 10px 0;
+            padding: 5px;
+        }
+
+        /* Метод 1: CSS mask с linear-gradient (рекомендуемый) */
+        .bottom-cut-mask {
+            -webkit-mask: linear-gradient(to top, transparent 0%, transparent 60%, black 60%, black 100%);
+            mask: linear-gradient(to top, transparent 0%, transparent 60%, black 60%, black 100%);
+            background: #333;
+            color: white;
+            padding: 5px;
+        }
+
+        .top-cut-mask {
+            -webkit-mask: linear-gradient(to bottom, transparent 0%, transparent 60%, black 60%, black 100%);
+            mask: linear-gradient(to bottom, transparent 0%, transparent 60%, black 60%, black 100%);
+            background: #333;
+            color: white;
+            padding: 5px;
+        }
+
+        /* Метод 2: clip-path (хорошая поддержка) */
+        .bottom-cut-clip {
+            clip-path: inset(0 0 60% 0);
+            background: #007acc;
+            color: white;
+            padding: 5px;
+        }
+
+        .top-cut-clip {
+            clip-path: inset(60% 0 0 0);
+            background: #007acc;
+            color: white;
+            padding: 5px;
+        }
+
+        /* Метод 3: overflow + position (стабильный) */
+        .bottom-cut-overflow {
+            position: relative;
+            overflow: hidden;
+            height: 0.4em; /* 40% от line-height */
+            vertical-align: bottom;
+            background: #ff6b6b;
+            color: white;
+            padding: 2px 5px;
+        }
+
+        .top-cut-overflow {
+            position: relative;
+            overflow: hidden;
+            height: 0.4em; /* 40% от line-height */
+            margin-top: 0.6em; /* 60% от line-height */
+            background: #ff6b6b;
+            color: white;
+            padding: 2px 5px;
+        }
+
+        /* Метод 4: псевдоэлемент overlay */
+        .bottom-cut-pseudo {
+            position: relative;
+            background: #51cf66;
+            color: white;
+            padding: 5px;
+        }
+
+        .bottom-cut-pseudo::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60%;
+            background: #f9f9f9;
+        }
+
+        .top-cut-pseudo {
+            position: relative;
+            background: #51cf66;
+            color: white;
+            padding: 5px;
+        }
+
+        .top-cut-pseudo::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60%;
+            background: #f9f9f9;
+            z-index: 1;
+        }
+
+        /* Контрольный образец */
+        .normal-text {
+            background: #868e96;
+            color: white;
+            padding: 5px;
+        }
+
+        /* Полоски для визуального понимания */
+        .guide-lines {
+            position: relative;
+            background:
+                linear-gradient(to bottom,
+                    transparent 40%,
+                    rgba(255,0,0,0.2) 40%,
+                    rgba(255,0,0,0.2) 60%,
+                    transparent 60%);
+        }
+    </style>
+</head>
+<body>
+    <h1>Улучшенные методы обрезания текста для чтения</h1>
+
+    <div class="test-section">
+        <h3>Контрольный образец (обычный текст):</h3>
+        <div class="text-sample normal-text">Солнце ярко светило над зеленым лугом</div>
+    </div>
+
+    <div class="test-section">
+        <h3>Метод 1: CSS Mask (лучший для современных браузеров)</h3>
+        <div class="text-sample bottom-cut-mask">Солнце ярко светило над зеленым лугом</div>
+        <div class="text-sample top-cut-mask">Солнце ярко светило над зеленым лугом</div>
+    </div>
+
+    <div class="test-section">
+        <h3>Метод 2: clip-path (хорошая совместимость)</h3>
+        <div class="text-sample bottom-cut-clip">Солнце ярко светило над зеленым лугом</div>
+        <div class="text-sample top-cut-clip">Солнце ярко светило над зеленым лугом</div>
+    </div>
+
+    <div class="test-section">
+        <h3>Метод 3: overflow + height (стабильный)</h3>
+        <div class="text-sample bottom-cut-overflow">Солнце ярко светило над зеленым лугом</div>
+        <div class="text-sample top-cut-overflow">Солнце ярко светило над зеленым лугом</div>
+    </div>
+
+    <div class="test-section">
+        <h3>Метод 4: псевдоэлемент overlay</h3>
+        <div class="text-sample bottom-cut-pseudo">Солнце ярко светило над зеленым лугом</div>
+        <div class="text-sample top-cut-pseudo">Солнце ярко светило над зеленым лугом</div>
+    </div>
+
+    <div class="test-section guide-lines">
+        <h3>С направляющими линиями (красные полоски показывают область 40%-60%):</h3>
+        <div class="text-sample normal-text">Солнце ярко светило над зеленым лугом</div>
+    </div>
+
+    <div class="test-section">
+        <h3>Debug информация:</h3>
+        <p><strong>Font size:</strong> 18pt</p>
+        <p><strong>Line height:</strong> 1.4 (≈25px)</p>
+        <p><strong>Цель:</strong> Показать только 40% высоты букв</p>
+        <p><strong>Оставить видимым:</strong> ~10px для нижнего обрезания, верхние ~10px для верхнего</p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Упражнение на технику чтения</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 2cm;
+            line-height: 1.6;
+        }
+        .title {
+            font-size: 18pt;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .exercise-text {
+            font-size: 14pt;
+            line-height: 1.8;
+            padding: 20px;
+            border: 1px solid #ccc;
+            margin: 20px 0;
+        }
+        .metadata {
+            font-size: 10pt;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        /* CSS-методы обрезания текста для техники чтения */
+
+        /* Метод 1: overflow hidden - базовый метод */
+        .bottom-cut-overflow {
+            display: inline-block;
+            height: 0.4em;
+            overflow: hidden;
+            vertical-align: baseline;
+        }
+
+        .top-cut-overflow {
+            display: inline-block;
+            height: 0.6em;
+            overflow: hidden;
+            line-height: 1em;
+            margin-top: 0.4em;
+            vertical-align: baseline;
+        }
+
+        /* Метод 2: clip-path - современный метод */
+        .bottom-cut-clippath {
+            display: inline-block;
+            clip-path: polygon(0% 60%, 100% 60%, 100% 100%, 0% 100%);
+            vertical-align: baseline;
+        }
+
+        .top-cut-clippath {
+            display: inline-block;
+            clip-path: polygon(0% 0%, 100% 0%, 100% 40%, 0% 40%);
+            vertical-align: baseline;
+        }
+
+        /* Метод 3: scaleY - трансформация */
+        .bottom-cut-scale {
+            display: inline-block;
+            transform: scaleY(0.4) translateY(60%);
+            transform-origin: bottom;
+            vertical-align: baseline;
+        }
+
+        .top-cut-scale {
+            display: inline-block;
+            transform: scaleY(0.6) translateY(-40%);
+            transform-origin: top;
+            vertical-align: baseline;
+        }
+
+        /* Метод 4: псевдоэлементы - через :before/:after */
+        .bottom-cut-pseudo {
+            position: relative;
+            display: inline-block;
+            vertical-align: baseline;
+        }
+
+        .bottom-cut-pseudo:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60%;
+            background: white;
+            z-index: 1;
+        }
+
+        .top-cut-pseudo {
+            position: relative;
+            display: inline-block;
+            vertical-align: baseline;
+        }
+
+        .top-cut-pseudo:before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60%;
+            background: white;
+            z-index: 1;
+        }
+
+        /* Метод 5: CSS mask - маскирование */
+        .bottom-cut-mask {
+            display: inline-block;
+            mask: linear-gradient(to bottom, transparent 0%, transparent 60%, black 60%, black 100%);
+            -webkit-mask: linear-gradient(to bottom, transparent 0%, transparent 60%, black 60%, black 100%);
+            vertical-align: baseline;
+        }
+
+        .top-cut-mask {
+            display: inline-block;
+            mask: linear-gradient(to bottom, black 0%, black 40%, transparent 40%, transparent 100%);
+            -webkit-mask: linear-gradient(to bottom, black 0%, black 40%, transparent 40%, transparent 100%);
+            vertical-align: baseline;
+        }
+
+        /* ОСНОВНОЙ МЕТОД - используется в продакшене */
+        .bottom-cut {
+            --cut-percentage: 60%; /* fallback */
+            display: inline-block;
+            clip-path: polygon(0% var(--cut-percentage), 100% var(--cut-percentage), 100% 100%, 0% 100%);
+            vertical-align: baseline;
+        }
+
+        .top-cut {
+            --cut-percentage: 40%; /* fallback */
+            display: inline-block;
+            clip-path: polygon(0% 0%, 100% 0%, 100% var(--cut-percentage), 0% var(--cut-percentage));
+            vertical-align: baseline;
+        }
+
+        /* Стили для других трансформаций */
+        .extra-letter {
+            color: #888;
+            font-weight: normal;
+        }
+
+        .mirror-text {
+            transform: scaleX(-1);
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="title">Упражнение на технику чтения</div>
+
+    <div class="metadata">
+        <p>Тип: bottom-cut | Слов: 4 | Сложность: easy</p>
+    </div>
+
+    <div class="exercise-text">
+        <span class="bottom-cut" style="--cut-percentage: 40%">Котенок играл во дворе.</span>
+    </div>
+
+    <!-- ТЕСТ ВСЕХ МЕТОДОВ ОБРЕЗАНИЯ -->
+    <div style="margin: 30px 0; padding: 20px; border: 2px solid #007acc;">
+        <h3 style="color: #007acc; margin-bottom: 15px;">ТЕСТ ВСЕХ МЕТОДОВ ОБРЕЗАНИЯ (нижняя часть):</h3>
+
+        <div style="margin: 10px 0;">
+            <strong>Метод 1 (overflow):</strong>
+            <span class="bottom-cut-overflow">Солнце ярко светило над зеленым лугом</span>
+        </div>
+
+        <div style="margin: 10px 0;">
+            <strong>Метод 2 (clip-path):</strong>
+            <span class="bottom-cut-clippath">Солнце ярко светило над зеленым лугом</span>
+        </div>
+
+        <div style="margin: 10px 0;">
+            <strong>Метод 3 (scaleY):</strong>
+            <span class="bottom-cut-scale">Солнце ярко светило над зеленым лугом</span>
+        </div>
+
+        <div style="margin: 10px 0;">
+            <strong>Метод 4 (псевдоэлемент):</strong>
+            <span class="bottom-cut-pseudo">Солнце ярко светило над зеленым лугом</span>
+        </div>
+
+        <div style="margin: 10px 0;">
+            <strong>Метод 5 (CSS mask):</strong>
+            <span class="bottom-cut-mask">Солнце ярко светило над зеленым лугом</span>
+        </div>
+
+        <div style="margin: 10px 0;">
+            <strong>Основной метод (переменные):</strong>
+            <span class="bottom-cut" style="--cut-percentage: 60%">Солнце ярко светило над зеленым лугом</span>
+        </div>
+    </div>
+
+
+    <div style="page-break-before: always;">
+        <div class="title">Исходный текст</div>
+        <div class="exercise-text">
+            Котенок играл во дворе.
+        </div>
+    </div>
+</body>
+</html>
