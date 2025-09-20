@@ -116,6 +116,17 @@ app.post('/generate-from-html', async (req, res) => {
       options
     })
 
+    // Логируем основной текст для отладки
+    const mainTextMatch = html.match(/<div class="exercise-text"[^>]*>(.*?)<\/div>/s)
+    if (mainTextMatch) {
+      console.log('🔍 MAIN TEXT IN PDF:', mainTextMatch[1])
+    } else {
+      console.log('❌ Main text not found in HTML')
+    }
+
+    // Сохраняем полный HTML для анализа
+    require('fs').writeFileSync('/tmp/debug-full-html.html', html)
+
     // Импортируем функцию генерации PDF из готового HTML
     const { generatePDFFromHTML } = await import('./services/pdf-generator')
 
