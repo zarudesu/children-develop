@@ -66,6 +66,59 @@ export default function ReadingTextGenerator({
     }
   }
 
+  const handleDebugPreview = async () => {
+    // Валидация перед отправкой
+    const wordCount = params.inputText.trim().split(/\s+/).filter(w => w.length > 0).length
+
+    if (wordCount < 3) {
+      alert('Текст должен содержать минимум 3 слова')
+      return
+    }
+
+    if (params.inputText.trim().length < 10) {
+      alert('Текст должен содержать минимум 10 символов')
+      return
+    }
+
+    if (!/[а-яё]/i.test(params.inputText)) {
+      alert('Текст должен содержать кириллические символы')
+      return
+    }
+
+    try {
+      const response = await fetch('http://localhost:3001/debug-html', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'reading-text',
+          params
+        })
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.message || 'Ошибка генерации HTML')
+      }
+
+      const htmlContent = await response.text()
+
+      // Открываем HTML в новом окне
+      const newWindow = window.open('', '_blank')
+      if (newWindow) {
+        newWindow.document.write(htmlContent)
+        newWindow.document.close()
+      } else {
+        alert('Не удалось открыть новое окно. Проверьте настройки блокировки всплывающих окон.')
+      }
+
+    } catch (error) {
+      console.error('Error generating HTML preview:', error)
+      alert(error instanceof Error ? error.message : 'Произошла ошибка при генерации HTML preview')
+    }
+  }
+
   const typeInfo = TEXT_TYPE_DESCRIPTIONS[params.textType]
 
   // Проверки для визуальной валидации
@@ -337,14 +390,24 @@ export default function ReadingTextGenerator({
             </div>
           </div>
 
-          {/* Кнопка генерации */}
-          <button
-            onClick={handleGenerate}
-            disabled={loading || !isValidInput}
-            className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
-          >
-            {loading ? 'Создание PDF...' : 'Создать упражнение'}
-          </button>
+          {/* Кнопки генерации */}
+          <div className="space-y-3">
+            <button
+              onClick={handleGenerate}
+              disabled={loading || !isValidInput}
+              className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+            >
+              {loading ? 'Создание PDF...' : 'Создать упражнение'}
+            </button>
+
+            <button
+              onClick={handleDebugPreview}
+              disabled={loading || !isValidInput}
+              className="w-full bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium text-sm"
+            >
+              🔍 Предварительный просмотр HTML
+            </button>
+          </div>
 
           {/* Информация о результате */}
           <div className="p-4 bg-gray-50 rounded-md">

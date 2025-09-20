@@ -297,18 +297,15 @@ export class TextTransformer {
   static getTransformationStyles(): string {
     return `
       .bottom-cut {
-        overflow: hidden;
-        height: calc(1em * (1 - var(--cut-percentage, 40%) / 100));
         display: inline-block;
-        vertical-align: bottom;
+        clip-path: polygon(0% 60%, 100% 60%, 100% 100%, 0% 100%);
+        vertical-align: baseline;
       }
 
       .top-cut {
-        overflow: hidden;
-        height: calc(1em * (1 - var(--cut-percentage, 40%) / 100));
         display: inline-block;
-        vertical-align: top;
-        margin-top: calc(1em * var(--cut-percentage, 40%) / 100);
+        clip-path: polygon(0% 0%, 100% 0%, 100% 40%, 0% 40%);
+        vertical-align: baseline;
       }
 
       .extra-letter {

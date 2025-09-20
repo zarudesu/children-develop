@@ -1,6 +1,6 @@
 import express from 'express'
 import cors from 'cors'
-import { generatePDF } from './services/pdf-generator'
+import { generatePDF, generateHTML } from './services/pdf-generator'
 import { validateRequest, validateReadingTextRequest } from './utils/validation'
 import { GenerateRequest, GeneratorType } from './types'
 
@@ -43,6 +43,100 @@ app.get('/health', async (req, res) => {
       timestamp: new Date().toISOString(),
       service: 'childdev-pdf',
       error: error instanceof Error ? error.message : 'Unknown error'
+    })
+  }
+})
+
+// Debug endpoint для просмотра HTML
+app.post('/debug-html', async (req, res) => {
+  try {
+    const requestBody = req.body as GenerateRequest
+
+    console.log('Received debug HTML request:', {
+      type: requestBody.type,
+      ...(requestBody.type === 'reading-text' && {
+        textType: (requestBody.params as any).textType,
+        textLength: (requestBody.params as any).inputText?.length,
+        fontSize: (requestBody.params as any).fontSize
+      })
+    })
+
+    // Валидация в зависимости от типа генератора
+    let validation: { success: boolean; error?: string }
+
+    if (requestBody.type === 'reading-text') {
+      validation = validateReadingTextRequest(requestBody.params)
+    } else {
+      // По умолчанию валидируем как филворд для обратной совместимости
+      validation = validateRequest(requestBody.params || requestBody)
+    }
+
+    if (!validation.success) {
+      return res.status(400).json({
+        error: 'Validation failed',
+        message: validation.error
+      })
+    }
+
+    // Генерация HTML
+    const htmlContent = await generateHTML(requestBody)
+
+    // Отправка HTML
+    res.setHeader('Content-Type', 'text/html; charset=utf-8')
+    res.setHeader('Cache-Control', 'no-cache')
+
+    res.send(htmlContent)
+
+    console.log(`HTML generated successfully: ${htmlContent.length} characters`)
+
+  } catch (error) {
+    console.error('HTML generation error:', error)
+
+    res.status(500).json({
+      error: 'Internal server error',
+      message: 'Ошибка генерации HTML'
+    })
+  }
+})
+
+// Новый endpoint для рендера готового HTML в PDF
+app.post('/generate-from-html', async (req, res) => {
+  try {
+    const { html, options = {} } = req.body
+
+    if (!html || typeof html !== 'string') {
+      return res.status(400).json({
+        error: 'Validation failed',
+        message: 'HTML content is required'
+      })
+    }
+
+    console.log('Received HTML for PDF generation:', {
+      htmlLength: html.length,
+      options
+    })
+
+    // Импортируем функцию генерации PDF из готового HTML
+    const { generatePDFFromHTML } = await import('./services/pdf-generator')
+
+    // Генерация PDF из готового HTML
+    const pdfBuffer = await generatePDFFromHTML(html, options)
+
+    // Отправка PDF
+    res.setHeader('Content-Type', 'application/pdf')
+    res.setHeader('Content-Length', pdfBuffer.length)
+    res.setHeader('Cache-Control', 'no-cache')
+
+    res.send(pdfBuffer)
+
+    console.log(`PDF from HTML generated successfully: ${pdfBuffer.length} bytes`)
+
+  } catch (error) {
+    console.error('PDF from HTML generation error:', error)
+
+    res.status(500).json({
+      error: 'Internal server error',
+      message: 'Ошибка генерации PDF из HTML'
     })
   }
 })

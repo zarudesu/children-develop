@@ -27,6 +27,129 @@
             color: #666;
             margin-bottom: 20px;
         }
+
+        /* CSS-методы обрезания текста для техники чтения */
+
+        /* Метод 1: overflow hidden - базовый метод */
+        .bottom-cut-overflow {
+            display: inline-block;
+            height: 0.4em;
+            overflow: hidden;
+            vertical-align: baseline;
+        }
+
+        .top-cut-overflow {
+            display: inline-block;
+            height: 0.6em;
+            overflow: hidden;
+            line-height: 1em;
+            margin-top: 0.4em;
+            vertical-align: baseline;
+        }
+
+        /* Метод 2: clip-path - современный метод */
+        .bottom-cut-clippath {
+            display: inline-block;
+            clip-path: polygon(0% 60%, 100% 60%, 100% 100%, 0% 100%);
+            vertical-align: baseline;
+        }
+
+        .top-cut-clippath {
+            display: inline-block;
+            clip-path: polygon(0% 0%, 100% 0%, 100% 40%, 0% 40%);
+            vertical-align: baseline;
+        }
+
+        /* Метод 3: scaleY - трансформация */
+        .bottom-cut-scale {
+            display: inline-block;
+            transform: scaleY(0.4) translateY(60%);
+            transform-origin: bottom;
+            vertical-align: baseline;
+        }
+
+        .top-cut-scale {
+            display: inline-block;
+            transform: scaleY(0.6) translateY(-40%);
+            transform-origin: top;
+            vertical-align: baseline;
+        }
+
+        /* Метод 4: псевдоэлементы - через :before/:after */
+        .bottom-cut-pseudo {
+            position: relative;
+            display: inline-block;
+            vertical-align: baseline;
+        }
+
+        .bottom-cut-pseudo:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60%;
+            background: white;
+            z-index: 1;
+        }
+
+        .top-cut-pseudo {
+            position: relative;
+            display: inline-block;
+            vertical-align: baseline;
+        }
+
+        .top-cut-pseudo:before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60%;
+            background: white;
+            z-index: 1;
+        }
+
+        /* Метод 5: CSS mask - маскирование */
+        .bottom-cut-mask {
+            display: inline-block;
+            mask: linear-gradient(to bottom, transparent 0%, transparent 60%, black 60%, black 100%);
+            -webkit-mask: linear-gradient(to bottom, transparent 0%, transparent 60%, black 60%, black 100%);
+            vertical-align: baseline;
+        }
+
+        .top-cut-mask {
+            display: inline-block;
+            mask: linear-gradient(to bottom, black 0%, black 40%, transparent 40%, transparent 100%);
+            -webkit-mask: linear-gradient(to bottom, black 0%, black 40%, transparent 40%, transparent 100%);
+            vertical-align: baseline;
+        }
+
+        /* ОСНОВНОЙ МЕТОД - используется в продакшене */
+        .bottom-cut {
+            --cut-percentage: 60%; /* fallback */
+            display: inline-block;
+            clip-path: polygon(0% var(--cut-percentage), 100% var(--cut-percentage), 100% 100%, 0% 100%);
+            vertical-align: baseline;
+        }
+
+        .top-cut {
+            --cut-percentage: 40%; /* fallback */
+            display: inline-block;
+            clip-path: polygon(0% 0%, 100% 0%, 100% var(--cut-percentage), 0% var(--cut-percentage));
+            vertical-align: baseline;
+        }
+
+        /* Стили для других трансформаций */
+        .extra-letter {
+            color: #888;
+            font-weight: normal;
+        }
+
+        .mirror-text {
+            transform: scaleX(-1);
+            display: inline-block;
+        }
     </style>
 </head>
 <body>
@@ -40,6 +163,56 @@
 
     <div class="exercise-text">
         {{{transformedText}}}
+    </div>
+
+    <!-- ТЕСТ ВСЕХ МЕТОДОВ ОБРЕЗАНИЯ -->
+    {{#if type}}
+    <div style="margin: 30px 0; padding: 20px; border: 2px solid #007acc;">
+        <h3 style="color: #007acc; margin-bottom: 15px;">ТЕСТ ВСЕХ МЕТОДОВ ОБРЕЗАНИЯ (нижняя часть):</h3>
+
+        <div style="margin: 10px 0;">
+            <strong>Метод 2 (clip-path):</strong>
+            <span class="bottom-cut-clippath">Солнце ярко светило над зеленым лугом</span>
+        </div>
+
+        <div style="margin: 10px 0;">
+            <strong>Метод 4 (псевдоэлемент):</strong>
+            <span class="bottom-cut-pseudo">Солнце ярко светило над зеленым лугом</span>
+        </div>
+
+        <div style="margin: 10px 0;">
+            <strong>Метод 5 (CSS mask):</strong>
+            <span class="bottom-cut-mask">Солнце ярко светило над зеленым лугом</span>
+        </div>
+
+        <div style="margin: 10px 0;">
+            <strong>Основной метод (переменные):</strong>
+            <span class="bottom-cut" style="--cut-percentage: 60%">Солнце ярко светило над зеленым лугом</span>
+        </div>
+    </div>
+    {{/if}}
+
+        <h3 style="color: #ff6b6b; margin-bottom: 15px;">ТЕСТ ВСЕХ МЕТОДОВ ОБРЕЗАНИЯ (верхняя часть):</h3>
+
+        <div style="margin: 10px 0;">
+            <strong>Метод 2 (clip-path):</strong>
+            <span class="top-cut-clippath">Солнце ярко светило над зеленым лугом</span>
+        </div>
+
+        <div style="margin: 10px 0;">
+            <strong>Метод 4 (псевдоэлемент):</strong>
+            <span class="top-cut-pseudo">Солнце ярко светило над зеленым лугом</span>
+        </div>
+
+        <div style="margin: 10px 0;">
+            <strong>Метод 5 (CSS mask):</strong>
+            <span class="top-cut-mask">Солнце ярко светило над зеленым лугом</span>
+        </div>
+
+        <div style="margin: 10px 0;">
+            <strong>Основной метод (переменные):</strong>
+            <span class="top-cut" style="--cut-percentage: 40%">Солнце ярко светило над зеленым лугом</span>
+        </div>
     </div>
 
     {{#if originalText}}

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { validateFilwordParams } from '../../filword/utils/validation'
 import { validateReadingTextParams } from '../../reading-text/utils/validation'
+import { generateReadingTextHTML } from '../../reading-text/utils/htmlGenerator'
 import { FilwordParams } from '../../filword/types'
 import { ReadingTextParams } from '../../reading-text/types'
 
@@ -42,65 +43,88 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Проксирование запроса к PDF сервису
-    const pdfResponse = await fetch(`${PDF_SERVICE_URL}/generate`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    })
-
-    if (!pdfResponse.ok) {
-      const errorText = await pdfResponse.text()
-      console.error('PDF Service error:', errorText)
-      
-      return NextResponse.json(
-        { 
-          message: pdfResponse.status === 422 
-            ? 'Не удалось разместить все слова в сетке. Попробуйте уменьшить количество слов или увеличить размер сетки.'
-            : 'Ошибка генерации PDF. Попробуйте позже.'
-        },
-        { status: pdfResponse.status }
-      )
-    }
-
-    // Получаем PDF как stream
-    const pdfBuffer = await pdfResponse.arrayBuffer()
-
-    // Генерируем имя файла в зависимости от типа
-    let filename: string
+    // Новая архитектура: генерируем HTML сначала, потом PDF
     if ('type' in body && body.type === 'reading-text') {
-      const params = body.params as ReadingTextParams
-      const typeNames: Record<string, string> = {
-        'normal': 'обычный-текст',
-        'bottom-cut': 'без-нижней-части',
-        'top-cut': 'без-верхней-части',
-        'missing-endings': 'без-окончаний',
-        'missing-vowels': 'без-гласных',
-        'partial-reversed': 'перевернутые-слова',
-        'scrambled-words': 'анаграммы',
-        'merged-text': 'слитный-текст',
-        'extra-letters': 'лишние-буквы',
-        'mirror-text': 'зеркальный-текст',
-        'mixed-types': 'смешанный-тип',
-        'word-ladder': 'лесенка-слов'
+      // Для reading-text используем новую архитектуру HTML->PDF
+
+      // 1. Генерируем HTML в веб-сервисе (один источник истины!)
+      const html = generateReadingTextHTML(body.params as ReadingTextParams)
+
+      // 2. Отправляем HTML в новый эндпоинт для генерации PDF
+      const pdfResponse = await fetch(`${PDF_SERVICE_URL}/generate-from-html`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ html }),
+      })
+
+      if (!pdfResponse.ok) {
+        const errorText = await pdfResponse.text()
+        console.error('PDF from HTML error:', errorText)
+        return NextResponse.json(
+          { message: 'Ошибка генерации PDF из HTML' },
+          { status: pdfResponse.status }
+        )
       }
-      const typeName = typeNames[params.textType] || params.textType
-      filename = `reading-text-${params.textType}-${Date.now()}.pdf`
+
+      // Получаем PDF как stream
+      const pdfBuffer = await pdfResponse.arrayBuffer()
+
+      // Генерируем имя файла
+      const params = body.params as ReadingTextParams
+      const filename = `reading-text-${params.textType}-${Date.now()}.pdf`
+
+      return new NextResponse(pdfBuffer, {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/pdf',
+          'Content-Disposition': `attachment; filename*=UTF-8''${encodeURIComponent(filename)}`,
+          'Cache-Control': 'no-cache',
+        },
+      })
+
     } else {
-      // Filword или обратная совместимость
+      // Для filword пока оставляем старую архитектуру
+      // Проксирование запроса к PDF сервису
+      const pdfResponse = await fetch(`${PDF_SERVICE_URL}/generate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      })
+
+      if (!pdfResponse.ok) {
+        const errorText = await pdfResponse.text()
+        console.error('PDF Service error:', errorText)
+
+        return NextResponse.json(
+          {
+            message: pdfResponse.status === 422
+              ? 'Не удалось разместить все слова в сетке. Попробуйте уменьшить количество слов или увеличить размер сетки.'
+              : 'Ошибка генерации PDF. Попробуйте позже.'
+          },
+          { status: pdfResponse.status }
+        )
+      }
+
+      // Получаем PDF как stream
+      const pdfBuffer = await pdfResponse.arrayBuffer()
+
+      // Генерируем имя файла для filword
       const params = 'params' in body ? body.params as FilwordParams : body as FilwordParams
-      filename = `filword-${params.gridSize}-${params.fontSize}-${params.words.length}words-${Date.now()}.pdf`
+      const filename = `filword-${params.gridSize}-${params.fontSize}-${params.words.length}words-${Date.now()}.pdf`
+
+      return new NextResponse(pdfBuffer, {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/pdf',
+          'Content-Disposition': `attachment; filename*=UTF-8''${encodeURIComponent(filename)}`,
+          'Cache-Control': 'no-cache',
+        },
+      })
     }
-    return new NextResponse(pdfBuffer, {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename*=UTF-8''${encodeURIComponent(filename)}`,
-        'Cache-Control': 'no-cache',
-      },
-    })
 
   } catch (error) {
     console.error('API error:', error)

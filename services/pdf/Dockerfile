@@ -29,6 +29,9 @@ COPY --from=builder /app/package*.json ./
 # Install only production dependencies (Playwright уже установлен в образе)
 RUN npm ci --only=production
 
+# Set production environment
+ENV NODE_ENV=production
+
 # Create non-root user (pwuser уже существует в Playwright образе)
 USER pwuser
 
