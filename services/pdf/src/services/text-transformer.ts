@@ -100,15 +100,15 @@ export class TextTransformer {
    * Реализация через CSS будет в шаблоне
    */
   private static bottomCutText(text: string, percentage: number): string {
-    // В PDF будем использовать CSS для обрезания
-    return `<span class="bottom-cut" style="--cut-percentage: ${percentage}%">${text}</span>`
+    // Используем псевдоэлементы для стабильной работы в PDF
+    return `<span class="bottom-cut-pseudo">${text}</span>`
   }
 
   /**
    * 3. Текст с обрезанной верхней частью
    */
   private static topCutText(text: string, percentage: number): string {
-    return `<span class="top-cut" style="--cut-percentage: ${percentage}%">${text}</span>`
+    return `<span class="top-cut-pseudo">${text}</span>`
   }
 
   /**
