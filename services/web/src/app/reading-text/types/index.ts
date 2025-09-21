@@ -28,6 +28,7 @@ export interface ReadingTextParams {
   reversedWordCount?: number  // для partial-reversed (сколько слов перевернуть)
   extraLetterDensity?: number // для extra-letters (плотность лишних букв)
   keepFirstLast?: boolean     // для scrambled-words (сохранять первую и последнюю буквы)
+  mixedMode?: 'sentence' | 'word' // для mixed-types (по предложениям или по словам)
 
   // Форматирование
   hasTitle?: boolean

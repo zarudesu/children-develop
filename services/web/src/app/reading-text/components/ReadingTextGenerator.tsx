@@ -33,7 +33,8 @@ export default function ReadingTextGenerator({
     endingLength: 2,
     reversedWordCount: 2,
     extraLetterDensity: 30,
-    keepFirstLast: true
+    keepFirstLast: true,
+    mixedMode: 'sentence'
   })
 
   const handleParamChange = <K extends keyof ReadingTextParams>(
@@ -335,6 +336,43 @@ export default function ReadingTextGenerator({
                     Перемешивать все буквы (сложнее)
                   </span>
                 </label>
+              </div>
+            </div>
+          ) : null}
+
+          {params.textType === 'mixed-types' ? (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Режим смешанного типа
+              </label>
+              <div className="grid grid-cols-1 gap-2">
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="mixedMode"
+                    checked={params.mixedMode === 'sentence'}
+                    onChange={() => handleParamChange('mixedMode', 'sentence')}
+                    className="mr-2 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">
+                    По предложениям (каждое предложение - свой тип)
+                  </span>
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="mixedMode"
+                    checked={params.mixedMode === 'word'}
+                    onChange={() => handleParamChange('mixedMode', 'word')}
+                    className="mr-2 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">
+                    Сборная солянка (разные слова - разные типы)
+                  </span>
+                </label>
+              </div>
+              <div className="mt-2 p-2 bg-yellow-50 rounded-md text-xs text-yellow-800">
+                <strong>Сборная солянка</strong> - самый сложный режим! Каждое слово обрабатывается своим типом трансформации.
               </div>
             </div>
           ) : null}

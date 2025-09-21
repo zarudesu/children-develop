@@ -124,6 +124,15 @@ function transformText(text: string, type: string, options: any = {}): string {
 
       return mirroredSentences.join(' ')
 
+    case 'mixed-types':
+      const mode = options.mixedMode || 'sentence'
+
+      if (mode === 'sentence') {
+        return processMixedBySentence(text, options)
+      } else {
+        return processMixedByWord(text, options)
+      }
+
     default:
       return text
   }
@@ -186,6 +195,62 @@ function getRandomCyrillicLetter(): string {
   const allLetters = [...vowels, ...consonants]
 
   return allLetters[Math.floor(Math.random() * allLetters.length)]
+}
+
+// Функция для смешанного типа по предложениям
+function processMixedBySentence(text: string, options: any): string {
+  const sentences = text.split(/([.!?]+)/).filter(s => s.trim() || /[.!?]/.test(s))
+  const transformations = [
+    'missing-vowels',
+    'scrambled-words',
+    'missing-endings',
+    'partial-reversed',
+    'merged-text'
+  ]
+
+  let result = ''
+  let sentenceIndex = 0
+
+  for (let i = 0; i < sentences.length; i += 2) {
+    const sentence = sentences[i]
+    const punctuation = sentences[i + 1] || ''
+
+    if (sentence && sentence.trim()) {
+      const transformationType = transformations[sentenceIndex % transformations.length]
+      const transformed = transformText(sentence.trim(), transformationType, options)
+      result += transformed + punctuation + ' '
+      sentenceIndex++
+    } else if (punctuation) {
+      result += punctuation + ' '
+    }
+  }
+
+  return result.trim()
+}
+
+// Функция для смешанного типа по словам (сборная солянка)
+function processMixedByWord(text: string, options: any): string {
+  const words = text.split(/(\s+|[.,!?;:])/)
+  const transformations = [
+    'missing-vowels',
+    'scrambled-words',
+    'missing-endings',
+    'partial-reversed'
+  ]
+
+  let wordIndex = 0
+  return words.map((part) => {
+    // Обрабатываем только кириллические слова
+    if (/^[а-яё]+$/i.test(part) && part.length > 2) {
+      const transformationType = transformations[wordIndex % transformations.length]
+      wordIndex++
+
+      // Применяем трансформацию к отдельному слову
+      return transformText(part, transformationType, options)
+    }
+
+    return part // оставляем пробелы и знаки препинания как есть
+  }).join('')
 }
 
 
@@ -362,7 +427,8 @@ export function generateReadingTextHTML(params: ReadingTextParams): string {
     endingLength: params.endingLength,
     reversedWordCount: params.reversedWordCount,
     extraLetterDensity: params.extraLetterDensity,
-    keepFirstLast: params.keepFirstLast
+    keepFirstLast: params.keepFirstLast,
+    mixedMode: params.mixedMode
   })
 
   const words = params.inputText.trim().split(/\\s+/).filter(w => w.length > 0)
