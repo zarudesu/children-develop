@@ -25,15 +25,17 @@ export default function GeneratorCard({
 }: GeneratorCardProps) {
   const CardWrapper = isComingSoon ? 'div' : Link
 
+  const wrapperProps = isComingSoon
+    ? {
+        className: `group relative bg-white rounded-2xl border border-gray-200 p-6 shadow-md hover:shadow-xl transition-all duration-300 opacity-60 cursor-not-allowed`
+      }
+    : {
+        href,
+        className: `group relative bg-white rounded-2xl border border-gray-200 p-6 shadow-md hover:shadow-xl transition-all duration-300 hover:border-blue-200 transform hover:scale-105`
+      }
+
   return (
-    <CardWrapper
-      {...(!isComingSoon && { href })}
-      className={`group relative bg-white rounded-2xl border border-gray-200 p-6 shadow-md hover:shadow-xl transition-all duration-300 ${
-        isComingSoon
-          ? 'opacity-60 cursor-not-allowed'
-          : 'hover:border-blue-200 transform hover:scale-105'
-      }`}
-    >
+    <CardWrapper {...wrapperProps}>
       {/* Badge */}
       {(isNew || isComingSoon) && (
         <div className={`absolute -top-2 -right-2 px-3 py-1 rounded-full text-xs font-semibold ${
