@@ -12,7 +12,7 @@ interface GeneratorCardProps {
   isComingSoon?: boolean
 }
 
-export default function GeneratorCard({
+export function GeneratorCard({
   title,
   description,
   icon,
@@ -23,19 +23,10 @@ export default function GeneratorCard({
   isNew = false,
   isComingSoon = false
 }: GeneratorCardProps) {
-  const CardWrapper = isComingSoon ? 'div' : Link
+  const baseClassName = "group relative bg-white rounded-2xl border border-gray-200 p-6 shadow-md hover:shadow-xl transition-all duration-300"
 
-  const wrapperProps = isComingSoon
-    ? {
-        className: `group relative bg-white rounded-2xl border border-gray-200 p-6 shadow-md hover:shadow-xl transition-all duration-300 opacity-60 cursor-not-allowed`
-      }
-    : {
-        href,
-        className: `group relative bg-white rounded-2xl border border-gray-200 p-6 shadow-md hover:shadow-xl transition-all duration-300 hover:border-blue-200 transform hover:scale-105`
-      }
-
-  return (
-    <CardWrapper {...wrapperProps}>
+  const cardContent = (
+    <>
       {/* Badge */}
       {(isNew || isComingSoon) && (
         <div className={`absolute -top-2 -right-2 px-3 py-1 rounded-full text-xs font-semibold ${
@@ -65,17 +56,11 @@ export default function GeneratorCard({
         {/* Difficulty */}
         <div>
           <span className="text-xs font-medium text-gray-500 mb-2 block">Сложность:</span>
-          <div className="flex flex-wrap gap-1">
-            {difficulty.map((level) => (
+          <div className="flex flex-wrap gap-2">
+            {difficulty.map((level, index) => (
               <span
-                key={level}
-                className={`px-2 py-1 rounded-md text-xs font-medium ${
-                  level === 'Легко'
-                    ? 'bg-green-100 text-green-700'
-                    : level === 'Средне'
-                    ? 'bg-yellow-100 text-yellow-700'
-                    : 'bg-red-100 text-red-700'
-                }`}
+                key={index}
+                className="px-2 py-1 bg-purple-100 text-purple-700 rounded-md text-xs font-medium"
               >
                 {level}
               </span>
@@ -86,10 +71,10 @@ export default function GeneratorCard({
         {/* Age Groups */}
         <div>
           <span className="text-xs font-medium text-gray-500 mb-2 block">Возраст:</span>
-          <div className="flex flex-wrap gap-1">
-            {ageGroups.map((age) => (
+          <div className="flex flex-wrap gap-2">
+            {ageGroups.map((age, index) => (
               <span
-                key={age}
+                key={index}
                 className="px-2 py-1 bg-blue-100 text-blue-700 rounded-md text-xs font-medium"
               >
                 {age}
@@ -105,13 +90,13 @@ export default function GeneratorCard({
         <ul className="space-y-1">
           {features.slice(0, 3).map((feature, index) => (
             <li key={index} className="text-sm text-gray-600 flex items-center gap-2">
-              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full flex-shrink-0"></div>
+              <div className="w-1.5 h-1.5 bg-green-500 rounded-full flex-shrink-0"></div>
               {feature}
             </li>
           ))}
           {features.length > 3 && (
-            <li className="text-sm text-gray-500 italic">
-              +{features.length - 3} дополнительных возможностей
+            <li className="text-xs text-gray-500 italic">
+              +{features.length - 3} больше
             </li>
           )}
         </ul>
@@ -134,6 +119,20 @@ export default function GeneratorCard({
           </div>
         )}
       </div>
-    </CardWrapper>
+    </>
+  )
+
+  if (isComingSoon) {
+    return (
+      <div className={`${baseClassName} opacity-60 cursor-not-allowed`}>
+        {cardContent}
+      </div>
+    )
+  }
+
+  return (
+    <Link href={href} className={`${baseClassName} hover:border-blue-200 transform hover:scale-105`}>
+      {cardContent}
+    </Link>
   )
 }
