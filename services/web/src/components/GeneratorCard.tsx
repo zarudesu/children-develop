@@ -1,10 +1,11 @@
 import Link from 'next/link'
+import { ComponentProps } from 'react'
 
 interface GeneratorCardProps {
   title: string
   description: string
   icon: string
-  href: string
+  href: ComponentProps<typeof Link>['href']
   difficulty: string[]
   ageGroups: string[]
   features: string[]
