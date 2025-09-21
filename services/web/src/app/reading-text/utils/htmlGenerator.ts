@@ -199,7 +199,8 @@ function getRandomCyrillicLetter(): string {
 
 // Функция для смешанного типа по предложениям
 function processMixedBySentence(text: string, options: any): string {
-  const sentences = text.split(/([.!?]+)/).filter(s => s.trim() || /[.!?]/.test(s))
+  // Улучшенная разбивка на предложения - разделяем по точкам, восклицательным и вопросительным знакам
+  const sentences = text.split(/([.!?]+\s*)/).filter(s => s.trim())
   const transformations = [
     'missing-vowels',
     'scrambled-words',
@@ -212,15 +213,18 @@ function processMixedBySentence(text: string, options: any): string {
   let sentenceIndex = 0
 
   for (let i = 0; i < sentences.length; i += 2) {
-    const sentence = sentences[i]
+    const sentence = sentences[i]?.trim()
     const punctuation = sentences[i + 1] || ''
 
-    if (sentence && sentence.trim()) {
+    if (sentence && sentence.length > 0) {
       const transformationType = transformations[sentenceIndex % transformations.length]
-      const transformed = transformText(sentence.trim(), transformationType, options)
+
+      // Применяем трансформацию к предложению (исключаем рекурсию mixed-types)
+      const safeOptions = { ...options, mixedMode: undefined }
+      const transformed = transformText(sentence, transformationType, safeOptions)
       result += transformed + punctuation + ' '
       sentenceIndex++
-    } else if (punctuation) {
+    } else if (punctuation.trim()) {
       result += punctuation + ' '
     }
   }
@@ -245,8 +249,9 @@ function processMixedByWord(text: string, options: any): string {
       const transformationType = transformations[wordIndex % transformations.length]
       wordIndex++
 
-      // Применяем трансформацию к отдельному слову
-      return transformText(part, transformationType, options)
+      // Применяем трансформацию к отдельному слову (исключаем рекурсию mixed-types)
+      const safeOptions = { ...options, mixedMode: undefined }
+      return transformText(part, transformationType, safeOptions)
     }
 
     return part // оставляем пробелы и знаки препинания как есть
