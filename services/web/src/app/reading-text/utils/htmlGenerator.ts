@@ -28,14 +28,24 @@ function transformText(text: string, type: string, options: any = {}): string {
 
     case 'missing-endings':
       const endingLength = options.endingLength || 2
-      const words = text.split(/(\\s+|[.,!?;:])/)
-      return words.map(word => {
-        if (!/^[а-яё]+$/i.test(word) || word.length <= endingLength + 1) {
-          return word
+      const words = text.split(/(\s+|[.,!?;:])/)
+
+      // Обрабатываем только кириллические слова - каждое второе
+      let wordIndex = 0
+      return words.map((part) => {
+        // Проверяем, является ли часть словом (кириллица)
+        if (/^[а-яё]+$/i.test(part) && part.length > endingLength + 1) {
+          wordIndex++
+          const shouldProcess = wordIndex % 2 === 0 // каждое второе слово
+
+          if (shouldProcess) {
+            const truncated = part.slice(0, -endingLength)
+            const underscores = '_'.repeat(endingLength)
+            return truncated + underscores
+          }
         }
-        const truncated = word.slice(0, -endingLength)
-        const underscores = '_'.repeat(endingLength)
-        return truncated + underscores
+
+        return part // оставляем как есть (слово или разделитель)
       }).join('')
 
     case 'missing-vowels':
