@@ -1,11 +1,11 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, ComponentProps } from 'react'
 
 interface NavigationItem {
   label: string
-  href?: string
+  href?: ComponentProps<typeof Link>['href']
   submenu?: NavigationItem[]
 }
 
