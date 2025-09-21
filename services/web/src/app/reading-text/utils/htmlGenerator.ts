@@ -51,6 +51,26 @@ function transformText(text: string, type: string, options: any = {}): string {
     case 'missing-vowels':
       return text.replace(/[аеёиоуыэюя]/gi, '_')
 
+    case 'partial-reversed':
+      const reversedWordCount = options.reversedWordCount || 2
+      const reversedParts = text.split(/(\s+|[.,!?;:])/)
+
+      // Переворачиваем каждое второе слово на 180°
+      let reversedWordIndex = 0
+      return reversedParts.map((part) => {
+        // Проверяем, является ли часть словом (кириллица)
+        if (/^[а-яё]+$/i.test(part) && part.length > 2) {
+          reversedWordIndex++
+          const shouldRotate = reversedWordIndex % 2 === 0 // каждое второе слово
+
+          if (shouldRotate) {
+            return `<span class="rotated-text">${part}</span>`
+          }
+        }
+
+        return part // оставляем как есть (слово или разделитель)
+      }).join('')
+
     case 'mirror-text':
       const reversed = text.split('').reverse().join('')
       return `<span class="mirror-text">${reversed}</span>`
@@ -215,6 +235,11 @@ function getCSS(): string {
 
       .mirror-text {
         transform: scaleX(-1);
+        display: inline-block;
+      }
+
+      .rotated-text {
+        transform: rotate(180deg);
         display: inline-block;
       }
     </style>
