@@ -188,25 +188,15 @@ function getRandomCyrillicLetter(): string {
   return allLetters[Math.floor(Math.random() * allLetters.length)]
 }
 
-// Функция для зеркального отражения предложения с сохранением заглавной буквы
+// Функция для зеркального отражения предложения с сохранением регистра букв
 function mirrorSentence(sentence: string): string {
   if (!sentence.trim()) return sentence
 
   // Убираем лишние пробелы
   const trimmed = sentence.trim()
 
-  // Проверяем, начинается ли с заглавной буквы
-  const isCapitalized = /^[А-ЯЁ]/.test(trimmed)
-
-  // Переворачиваем всё предложение
-  const reversed = trimmed.split('').reverse().join('')
-
-  if (isCapitalized) {
-    // Делаем первую букву заглавной, остальные строчными
-    return reversed.charAt(0).toUpperCase() + reversed.slice(1).toLowerCase()
-  } else {
-    return reversed.toLowerCase()
-  }
+  // Просто переворачиваем предложение, сохраняя регистр всех букв
+  return trimmed.split('').reverse().join('')
 }
 
 // CSS стили для PDF
