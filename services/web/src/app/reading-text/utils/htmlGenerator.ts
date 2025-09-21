@@ -105,8 +105,24 @@ function transformText(text: string, type: string, options: any = {}): string {
       return result.join('')
 
     case 'mirror-text':
-      const reversed = text.split('').reverse().join('')
-      return `<span class="mirror-text">${reversed}</span>`
+      // Разбиваем текст на предложения по знакам препинания
+      const sentences = text.split(/([.!?]+)/).filter(s => s.trim())
+      const mirroredSentences: string[] = []
+
+      for (let i = 0; i < sentences.length; i += 2) {
+        const sentence = sentences[i]
+        const punctuation = sentences[i + 1] || ''
+
+        if (sentence.trim()) {
+          const mirrored = mirrorSentence(sentence.trim())
+          mirroredSentences.push(mirrored + punctuation)
+        } else if (punctuation) {
+          // Если есть только знаки препинания без предложения
+          mirroredSentences.push(punctuation)
+        }
+      }
+
+      return `<span class="mirror-text">${mirroredSentences.join(' ')}</span>`
 
     default:
       return text
@@ -170,6 +186,27 @@ function getRandomCyrillicLetter(): string {
   const allLetters = [...vowels, ...consonants]
 
   return allLetters[Math.floor(Math.random() * allLetters.length)]
+}
+
+// Функция для зеркального отражения предложения с сохранением заглавной буквы
+function mirrorSentence(sentence: string): string {
+  if (!sentence.trim()) return sentence
+
+  // Убираем лишние пробелы
+  const trimmed = sentence.trim()
+
+  // Проверяем, начинается ли с заглавной буквы
+  const isCapitalized = /^[А-ЯЁ]/.test(trimmed)
+
+  // Переворачиваем всё предложение
+  const reversed = trimmed.split('').reverse().join('')
+
+  if (isCapitalized) {
+    // Делаем первую букву заглавной, остальные строчными
+    return reversed.charAt(0).toUpperCase() + reversed.slice(1).toLowerCase()
+  } else {
+    return reversed.toLowerCase()
+  }
 }
 
 // CSS стили для PDF
