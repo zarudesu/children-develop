@@ -8,18 +8,22 @@ function transformText(text: string, type: string, options: any = {}): string {
 
     case 'bottom-cut':
       const cutPercentage = options.cutPercentage || 40
-      // Пословная обработка: каждое слово в отдельном span
+      // Пословная обработка: каждое слово в отдельном span с настраиваемым процентом
       return text.split(/(\s+)/).map(part => {
         // Только слова оборачиваем, пробелы оставляем как есть
-        return part.trim() ? `<span class="bottom-cut-pseudo">${part}</span>` : part
+        return part.trim()
+          ? `<span class="bottom-cut-pseudo" style="--cut-height: ${cutPercentage}%">${part}</span>`
+          : part
       }).join('')
 
     case 'top-cut':
       const topCutPercentage = options.cutPercentage || 40
-      // Пословная обработка: каждое слово в отдельном span
+      // Пословная обработка: каждое слово в отдельном span с настраиваемым процентом
       return text.split(/(\s+)/).map(part => {
         // Только слова оборачиваем, пробелы оставляем как есть
-        return part.trim() ? `<span class="top-cut-pseudo">${part}</span>` : part
+        return part.trim()
+          ? `<span class="top-cut-pseudo" style="--cut-height: ${topCutPercentage}%">${part}</span>`
+          : part
       }).join('')
 
     case 'missing-endings':
@@ -138,10 +142,10 @@ function getCSS(): string {
       .bottom-cut-pseudo:before {
         content: '';
         position: absolute;
-        top: 0;
+        bottom: 0;
         left: 0;
         right: 0;
-        height: 60%;
+        height: var(--cut-height, 60%);
         background: white;
         z-index: 1;
       }
@@ -155,10 +159,10 @@ function getCSS(): string {
       .top-cut-pseudo:before {
         content: '';
         position: absolute;
-        bottom: 0;
+        top: 0;
         left: 0;
         right: 0;
-        height: 60%;
+        height: var(--cut-height, 60%);
         background: white;
         z-index: 1;
       }
