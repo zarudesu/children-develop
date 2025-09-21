@@ -86,15 +86,13 @@ export default function ReadingTextGenerator({
     }
 
     try {
-      const response = await fetch('http://localhost:3001/debug-html', {
+      // Используем веб-генератор напрямую для предварительного просмотра
+      const response = await fetch('/api/reading-text/debug-html', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          type: 'reading-text',
-          params
-        })
+        body: JSON.stringify(params)
       })
 
       if (!response.ok) {

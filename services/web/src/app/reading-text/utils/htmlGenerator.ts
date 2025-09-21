@@ -8,11 +8,19 @@ function transformText(text: string, type: string, options: any = {}): string {
 
     case 'bottom-cut':
       const cutPercentage = options.cutPercentage || 40
-      return `<span class="bottom-cut-pseudo">${text}</span>`
+      // Пословная обработка: каждое слово в отдельном span
+      return text.split(/(\s+)/).map(part => {
+        // Только слова оборачиваем, пробелы оставляем как есть
+        return part.trim() ? `<span class="bottom-cut-pseudo">${part}</span>` : part
+      }).join('')
 
     case 'top-cut':
       const topCutPercentage = options.cutPercentage || 40
-      return `<span class="top-cut-pseudo">${text}</span>`
+      // Пословная обработка: каждое слово в отдельном span
+      return text.split(/(\s+)/).map(part => {
+        // Только слова оборачиваем, пробелы оставляем как есть
+        return part.trim() ? `<span class="top-cut-pseudo">${part}</span>` : part
+      }).join('')
 
     case 'missing-endings':
       const endingLength = options.endingLength || 2
@@ -245,54 +253,6 @@ export function generateReadingTextHTML(params: ReadingTextParams): string {
     ${transformedText}
   </div>
 
-  <!-- ТЕСТ ВСЕХ МЕТОДОВ ОБРЕЗАНИЯ -->
-  ${params.textType === 'bottom-cut' || params.textType === 'top-cut' ? `
-  <div style="margin: 30px 0; padding: 20px; border: 2px solid #007acc;">
-    <h3 style="color: #007acc; margin-bottom: 15px;">ТЕСТ ВСЕХ МЕТОДОВ ОБРЕЗАНИЯ (нижняя часть):</h3>
-
-    <div style="margin: 10px 0;">
-      <strong>Метод 2 (clip-path):</strong>
-      <span class="bottom-cut-clippath">Солнце ярко светило над зеленым лугом</span>
-    </div>
-
-    <div style="margin: 10px 0;">
-      <strong>Метод 4 (псевдоэлемент):</strong>
-      <span class="bottom-cut-pseudo">Солнце ярко светило над зеленым лугом</span>
-    </div>
-
-    <div style="margin: 10px 0;">
-      <strong>Метод 5 (CSS mask):</strong>
-      <span class="bottom-cut-mask">Солнце ярко светило над зеленым лугом</span>
-    </div>
-
-    <div style="margin: 10px 0;">
-      <strong>Основной метод (переменные):</strong>
-      <span class="bottom-cut" style="--cut-percentage: 60%">Солнце ярко светило над зеленым лугом</span>
-    </div>
-  </div>
-
-  <h3 style="color: #ff6b6b; margin-bottom: 15px;">ТЕСТ ВСЕХ МЕТОДОВ ОБРЕЗАНИЯ (верхняя часть):</h3>
-
-  <div style="margin: 10px 0;">
-    <strong>Метод 2 (clip-path):</strong>
-    <span class="top-cut-clippath">Солнце ярко светило над зеленым лугом</span>
-  </div>
-
-  <div style="margin: 10px 0;">
-    <strong>Метод 4 (псевдоэлемент):</strong>
-    <span class="top-cut-pseudo">Солнце ярко светило над зеленым лугом</span>
-  </div>
-
-  <div style="margin: 10px 0;">
-    <strong>Метод 5 (CSS mask):</strong>
-    <span class="top-cut-mask">Солнце ярко светило над зеленым лугом</span>
-  </div>
-
-  <div style="margin: 10px 0;">
-    <strong>Основной метод (переменные):</strong>
-    <span class="top-cut" style="--cut-percentage: 40%">Солнце ярко светило над зеленым лугом</span>
-  </div>
-  ` : ''}
 
   <div style="page-break-before: always;">
     <div class="title">Исходный текст</div>
