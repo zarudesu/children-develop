@@ -27,6 +27,7 @@ export interface ReadingTextParams {
   endingLength?: number       // для missing-endings (1-2 буквы)
   reversedWordCount?: number  // для partial-reversed (сколько слов перевернуть)
   extraLetterDensity?: number // для extra-letters (плотность лишних букв)
+  keepFirstLast?: boolean     // для scrambled-words (сохранять первую и последнюю буквы)
 
   // Форматирование
   hasTitle?: boolean

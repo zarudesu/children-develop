@@ -32,7 +32,8 @@ export default function ReadingTextGenerator({
     cutPercentage: 40,
     endingLength: 2,
     reversedWordCount: 2,
-    extraLetterDensity: 30
+    extraLetterDensity: 30,
+    keepFirstLast: true
   })
 
   const handleParamChange = <K extends keyof ReadingTextParams>(
@@ -300,6 +301,40 @@ export default function ReadingTextGenerator({
               <div className="flex justify-between text-xs text-gray-500 mt-1">
                 <span>10%</span>
                 <span>50%</span>
+              </div>
+            </div>
+          ) : null}
+
+          {params.textType === 'scrambled-words' ? (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Режим анаграмм
+              </label>
+              <div className="grid grid-cols-1 gap-2">
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="scrambleMode"
+                    checked={params.keepFirstLast === true}
+                    onChange={() => handleParamChange('keepFirstLast', true)}
+                    className="mr-2 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">
+                    Сохранять первую и последнюю буквы (рекомендуется)
+                  </span>
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="scrambleMode"
+                    checked={params.keepFirstLast === false}
+                    onChange={() => handleParamChange('keepFirstLast', false)}
+                    className="mr-2 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">
+                    Перемешивать все буквы (сложнее)
+                  </span>
+                </label>
               </div>
             </div>
           ) : null}

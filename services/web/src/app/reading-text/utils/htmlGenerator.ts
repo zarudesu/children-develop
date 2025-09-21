@@ -71,6 +71,18 @@ function transformText(text: string, type: string, options: any = {}): string {
         return part // оставляем как есть (слово или разделитель)
       }).join('')
 
+    case 'scrambled-words':
+      const keepFirstLast = options.keepFirstLast !== false // по умолчанию true
+      const scrambledParts = text.split(/(\s+|[.,!?;:])/)
+
+      return scrambledParts.map((part) => {
+        // Обрабатываем только кириллические слова длиной больше 3 букв
+        if (/^[а-яё]+$/i.test(part) && part.length > 3) {
+          return scrambleWord(part, keepFirstLast)
+        }
+        return part // оставляем пробелы и знаки препинания как есть
+      }).join('')
+
     case 'mirror-text':
       const reversed = text.split('').reverse().join('')
       return `<span class="mirror-text">${reversed}</span>`
@@ -78,6 +90,56 @@ function transformText(text: string, type: string, options: any = {}): string {
     default:
       return text
   }
+}
+
+// Функция для перемешивания букв в слове
+function scrambleWord(word: string, keepFirstLast: boolean): string {
+  if (word.length <= 3) return word // слишком короткое слово не перемешиваем
+
+  const chars = word.split('')
+  const isCapitalized = /^[А-ЯЁ]/.test(word) // проверяем, начинается ли с заглавной
+
+  if (keepFirstLast) {
+    // Режим: первая и последняя буквы остаются на месте
+    if (word.length <= 4) return word // для слов из 4 букв нечего перемешивать
+
+    const first = chars[0]
+    const last = chars[chars.length - 1]
+    const middle = chars.slice(1, -1)
+
+    // Перемешиваем средние буквы
+    const shuffledMiddle = shuffleArray(middle.slice())
+
+    const result = [first, ...shuffledMiddle, last].join('')
+
+    // Обрабатываем заглавные буквы
+    return adjustCapitalization(result, isCapitalized)
+  } else {
+    // Режим: перемешиваем все буквы
+    const shuffled = shuffleArray(chars.slice())
+    const result = shuffled.join('')
+
+    // Обрабатываем заглавные буквы
+    return adjustCapitalization(result, isCapitalized)
+  }
+}
+
+// Функция для перемешивания массива (алгоритм Фишера-Йетса)
+function shuffleArray<T>(array: T[]): T[] {
+  const result = [...array]
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[result[i], result[j]] = [result[j], result[i]]
+  }
+  return result
+}
+
+// Функция для корректной обработки заглавных букв
+function adjustCapitalization(word: string, shouldBeCapitalized: boolean): string {
+  if (!shouldBeCapitalized) return word.toLowerCase()
+
+  // Делаем первую букву заглавной, остальные строчными
+  return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
 }
 
 // CSS стили для PDF
@@ -252,7 +314,8 @@ export function generateReadingTextHTML(params: ReadingTextParams): string {
     cutPercentage: params.cutPercentage,
     endingLength: params.endingLength,
     reversedWordCount: params.reversedWordCount,
-    extraLetterDensity: params.extraLetterDensity
+    extraLetterDensity: params.extraLetterDensity,
+    keepFirstLast: params.keepFirstLast
   })
 
   const words = params.inputText.trim().split(/\\s+/).filter(w => w.length > 0)
