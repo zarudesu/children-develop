@@ -87,6 +87,23 @@ function transformText(text: string, type: string, options: any = {}): string {
       // Убираем пробелы между словами, но сохраняем знаки препинания
       return text.replace(/\s+/g, '')
 
+    case 'extra-letters':
+      const density = options.extraLetterDensity || 30
+      const chars = text.split('')
+      const result: string[] = []
+
+      chars.forEach(char => {
+        result.push(char)
+
+        // Добавляем случайную букву с заданной вероятностью
+        if (/[а-яё]/i.test(char) && Math.random() * 100 < density) {
+          const randomLetter = getRandomCyrillicLetter()
+          result.push(`<span class="extra-letter">${randomLetter}</span>`)
+        }
+      })
+
+      return result.join('')
+
     case 'mirror-text':
       const reversed = text.split('').reverse().join('')
       return `<span class="mirror-text">${reversed}</span>`
@@ -144,6 +161,15 @@ function adjustCapitalization(word: string, shouldBeCapitalized: boolean): strin
 
   // Делаем первую букву заглавной, остальные строчными
   return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+}
+
+// Функция для получения случайной кириллической буквы
+function getRandomCyrillicLetter(): string {
+  const vowels = ['а', 'е', 'ё', 'и', 'о', 'у', 'ы', 'э', 'ю', 'я']
+  const consonants = ['б', 'в', 'г', 'д', 'ж', 'з', 'й', 'к', 'л', 'м', 'н', 'п', 'р', 'с', 'т', 'ф', 'х', 'ц', 'ч', 'ш', 'щ']
+  const allLetters = [...vowels, ...consonants]
+
+  return allLetters[Math.floor(Math.random() * allLetters.length)]
 }
 
 // CSS стили для PDF
