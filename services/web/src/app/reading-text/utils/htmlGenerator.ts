@@ -83,6 +83,10 @@ function transformText(text: string, type: string, options: any = {}): string {
         return part // оставляем пробелы и знаки препинания как есть
       }).join('')
 
+    case 'merged-text':
+      // Убираем пробелы между словами, но сохраняем знаки препинания
+      return text.replace(/\s+/g, '')
+
     case 'mirror-text':
       const reversed = text.split('').reverse().join('')
       return `<span class="mirror-text">${reversed}</span>`
