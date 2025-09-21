@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import GeneratorCard from '../components/GeneratorCard'
+import { GeneratorCard } from '../components/GeneratorCard'
 
 export default function HomePage() {
   return (
