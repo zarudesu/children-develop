@@ -105,9 +105,24 @@ function transformText(text: string, type: string, options: any = {}): string {
       return result.join('')
 
     case 'mirror-text':
-      // Просто оборачиваем текст в CSS-класс для зеркального отражения
-      // CSS transform: scaleX(-1) отразит текст зеркально без изменения порядка букв
-      return `<span class="mirror-text">${text}</span>`
+      // Разбиваем текст на предложения и переворачиваем каждое по буквам
+      const sentences = text.split(/([.!?]+)/).filter(s => s.trim() || /[.!?]/.test(s))
+      const mirroredSentences: string[] = []
+
+      for (let i = 0; i < sentences.length; i += 2) {
+        const sentence = sentences[i]
+        const punctuation = sentences[i + 1] || ''
+
+        if (sentence && sentence.trim()) {
+          // Переворачиваем предложение по буквам, сохраняя регистр на исходных позициях
+          const reversed = sentence.trim().split('').reverse().join('')
+          mirroredSentences.push(reversed + punctuation)
+        } else if (punctuation) {
+          mirroredSentences.push(punctuation)
+        }
+      }
+
+      return mirroredSentences.join(' ')
 
     default:
       return text
