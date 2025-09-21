@@ -65,6 +65,8 @@ export interface ReadingTextParams {
   endingLength?: number       // для missing-endings (1-2 буквы)
   reversedWordCount?: number  // для partial-reversed (сколько слов перевернуть)
   extraLetterDensity?: number // для extra-letters (плотность лишних букв)
+  keepFirstLast?: boolean     // для scrambled-words (сохранять ли первую и последнюю буквы)
+  mixedMode?: 'sentence' | 'word'  // для mixed-types (режим смешивания)
 
   // Форматирование
   hasTitle?: boolean

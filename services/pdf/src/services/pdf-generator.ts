@@ -256,6 +256,8 @@ async function generateReadingTextPDF(params: ReadingTextParams): Promise<Buffer
       endingLength: params.endingLength,
       reversedWordCount: params.reversedWordCount,
       extraLetterDensity: params.extraLetterDensity,
+      keepFirstLast: params.keepFirstLast,
+      mixedMode: params.mixedMode,
       textCase: params.textCase
     })
 
@@ -355,6 +357,8 @@ async function generateReadingTextHTML(params: ReadingTextParams): Promise<strin
       endingLength: params.endingLength,
       reversedWordCount: params.reversedWordCount,
       extraLetterDensity: params.extraLetterDensity,
+      keepFirstLast: params.keepFirstLast,
+      mixedMode: params.mixedMode,
       textCase: params.textCase
     })
 

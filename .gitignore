@@ -95,3 +95,9 @@ temp/
 # Debug files
 debug_*.html
 debug_*.pdf
+
+# Deployment SSH keys and sensitive data
+infra/deploy/*.pub
+infra/deploy/*.key
+infra/deploy/.ssh/
+infra/deploy/secrets/

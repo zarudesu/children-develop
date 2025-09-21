@@ -12,6 +12,8 @@ interface TransformationOptions {
   endingLength?: number
   reversedWordCount?: number
   extraLetterDensity?: number
+  keepFirstLast?: boolean
+  mixedMode?: 'sentence' | 'word'
   textCase?: TextCase
 }
 
@@ -233,26 +235,99 @@ export class TextTransformer {
    * 11. Смешанный тип - комбинация разных трансформаций
    */
   private static mixedTypesText(text: string, options: TransformationOptions): string {
-    const sentences = text.split(/([.!?]+)/).filter(s => s.trim())
-    const transformations: ReadingTextType[] = [
-      'missing-vowels',
-      'partial-reversed',
-      'missing-endings',
-      'scrambled-words'
+    const mode = options.mixedMode || 'sentence'
+
+    if (mode === 'sentence') {
+      return this.processMixedBySentence(text, options)
+    } else {
+      return this.processMixedByWord(text, options)
+    }
+  }
+
+  /**
+   * Смешанный тип по предложениям - каждое предложение использует свой тип
+   */
+  private static processMixedBySentence(text: string, options: TransformationOptions): string {
+    const sentences = text.split(/([.!?]+\s*)/).filter(s => s.trim())
+
+    // Трансформации для предложений (merged-text и mirror-text применяются ко всему предложению)
+    const sentenceTransformations: ReadingTextType[] = [
+      'missing-vowels',    // применяется к каждому слову
+      'scrambled-words',   // применяется к каждому слову
+      'missing-endings',   // применяется к каждому слову
+      'merged-text',       // применяется ко всему предложению
+      'mirror-text'        // применяется ко всему предложению
     ]
 
     let result = ''
     let sentenceIndex = 0
 
     for (let i = 0; i < sentences.length; i += 2) {
-      const sentence = sentences[i]
+      const sentence = sentences[i]?.trim()
       const punctuation = sentences[i + 1] || ''
 
-      if (sentence.trim()) {
-        const transformationType = transformations[sentenceIndex % transformations.length]
-        const transformed = this.transform(sentence, transformationType, options)
+      if (sentence && sentence.length > 0) {
+        const transformationType = sentenceTransformations[sentenceIndex % sentenceTransformations.length]
+
+        // Применяем трансформацию к предложению (исключаем рекурсию mixed-types)
+        const safeOptions = { ...options, mixedMode: undefined }
+        const transformed = this.transform(sentence, transformationType, safeOptions)
         result += transformed + punctuation + ' '
         sentenceIndex++
+      } else if (punctuation.trim()) {
+        result += punctuation + ' '
+      }
+    }
+
+    return result.trim()
+  }
+
+  /**
+   * Смешанный тип по словам - максимальная сложность
+   */
+  private static processMixedByWord(text: string, options: TransformationOptions): string {
+    // Сначала разбиваем на предложения для "целых" трансформаций
+    const sentences = text.split(/([.!?]+\s*)/).filter(s => s.trim())
+
+    // Трансформации: часть применяется к словам, часть к предложениям
+    const allTransformations: ReadingTextType[] = [
+      'missing-vowels',     // к словам
+      'scrambled-words',    // к словам
+      'missing-endings',    // к словам
+      'merged-text',        // к предложению целиком
+      'mirror-text'         // к предложению целиком
+    ]
+
+    let result = ''
+    let transformIndex = 0
+
+    for (let i = 0; i < sentences.length; i += 2) {
+      const sentence = sentences[i]?.trim()
+      const punctuation = sentences[i + 1] || ''
+
+      if (sentence && sentence.length > 0) {
+        const transformationType = allTransformations[transformIndex % allTransformations.length]
+        transformIndex++
+
+        // Если это трансформация для всего предложения
+        if (transformationType === 'merged-text' || transformationType === 'mirror-text') {
+          const safeOptions = { ...options, mixedMode: undefined }
+          const transformed = this.transform(sentence, transformationType, safeOptions)
+          result += transformed + punctuation + ' '
+        } else {
+          // Применяем трансформацию к каждому слову в предложении
+          const words = sentence.split(/(\s+)/)
+          const transformedWords = words.map((part) => {
+            if (/^[а-яё]+$/i.test(part) && part.length > 2) {
+              const safeOptions = { ...options, mixedMode: undefined }
+              return this.transform(part, transformationType, safeOptions)
+            }
+            return part
+          }).join('')
+          result += transformedWords + punctuation + ' '
+        }
+      } else if (punctuation.trim()) {
+        result += punctuation + ' '
       }
     }
 

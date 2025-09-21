@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import GeneratorCard from '../components/GeneratorCard'
 
 export default function HomePage() {
   return (
@@ -43,17 +44,30 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* CTA Button */}
-            <Link 
-              href="/filword" 
-              className="inline-flex items-center gap-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-lg font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
-            >
-              <span className="text-xl">🎯</span>
-              Создать первый филворд
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
-            </Link>
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link
+                href="/filword"
+                className="inline-flex items-center gap-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-lg font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
+              >
+                <span className="text-xl">🧩</span>
+                Создать филворд
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </Link>
+
+              <Link
+                href="/reading-text"
+                className="inline-flex items-center gap-3 bg-gradient-to-r from-green-600 to-blue-600 text-white px-8 py-4 rounded-lg font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
+              >
+                <span className="text-xl">📖</span>
+                Тексты для чтения
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </Link>
+            </div>
           </div>
         </div>
 
@@ -64,8 +78,74 @@ export default function HomePage() {
         </div>
       </div>
 
+      {/* Generators Section */}
+      <div className="bg-white py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              Наши генераторы
+            </h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Выберите подходящий инструмент для создания образовательных материалов
+            </p>
+          </div>
+
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
+            {/* Филворды */}
+            <GeneratorCard
+              title="Филворды"
+              description="Создавайте словесные головоломки с настраиваемыми параметрами. Идеально для развития внимания и логического мышления."
+              icon="🧩"
+              href="/filword"
+              difficulty={['Легко', 'Средне', 'Сложно']}
+              ageGroups={['6-8 лет', '9-12 лет', '13+ лет']}
+              features={[
+                'Сетки от 10x10 до 20x20',
+                'Тематические категории слов',
+                'Настройка направлений размещения',
+                'Двухстраничный PDF с ответами'
+              ]}
+            />
+
+            {/* Тексты для чтения */}
+            <GeneratorCard
+              title="Тексты для чтения"
+              description="12 типов трансформаций текста для развития техники чтения, скорочтения и коррекции дислексии."
+              icon="📖"
+              href="/reading-text"
+              difficulty={['Легко', 'Средне', 'Сложно']}
+              ageGroups={['3-5 лет', '6-8 лет', '9-12 лет', '13+ лет']}
+              features={[
+                'Обрезание букв (верх/низ)',
+                'Анаграммы с настройками',
+                'Зеркальный текст',
+                'Смешанные типы упражнений'
+              ]}
+              isNew={true}
+            />
+
+            {/* Планируемые генераторы */}
+            <GeneratorCard
+              title="Кроссворды"
+              description="Классические и тематические кроссворды с автоматической генерацией сетки и подсказок."
+              icon="🔤"
+              href="/crossword"
+              difficulty={['Легко', 'Средне', 'Сложно']}
+              ageGroups={['8-10 лет', '11-15 лет', '16+ лет']}
+              features={[
+                'Автоматическая сетка',
+                'Тематические категории',
+                'Настройка сложности',
+                'Красивые шаблоны'
+              ]}
+              isComingSoon={true}
+            />
+          </div>
+        </div>
+      </div>
+
       {/* Features Section */}
-      <div className="bg-white">
+      <div className="bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
@@ -127,15 +207,24 @@ export default function HomePage() {
             Начните создавать прямо сейчас
           </h2>
           <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Первый филворд можно создать за 2 минуты. Никакой регистрации или оплаты.
+            Выберите генератор и создайте первое задание за 2 минуты. Никакой регистрации или оплаты.
           </p>
-          <Link 
-            href="/filword"
-            className="inline-flex items-center gap-3 bg-white text-blue-600 px-8 py-4 rounded-lg font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
-          >
-            <span className="text-xl">🚀</span>
-            Попробовать генератор
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              href="/filword"
+              className="inline-flex items-center gap-3 bg-white text-blue-600 px-8 py-4 rounded-lg font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
+            >
+              <span className="text-xl">🧩</span>
+              Создать филворд
+            </Link>
+            <Link
+              href="/reading-text"
+              className="inline-flex items-center gap-3 bg-white/10 backdrop-blur text-white border border-white/20 px-8 py-4 rounded-lg font-semibold text-lg shadow-lg hover:shadow-xl hover:bg-white/20 transform hover:scale-105 transition-all"
+            >
+              <span className="text-xl">📖</span>
+              Тексты для чтения
+            </Link>
+          </div>
         </div>
       </div>
     </div>

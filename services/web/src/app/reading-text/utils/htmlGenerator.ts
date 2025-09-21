@@ -201,12 +201,14 @@ function getRandomCyrillicLetter(): string {
 function processMixedBySentence(text: string, options: any): string {
   // Улучшенная разбивка на предложения - разделяем по точкам, восклицательным и вопросительным знакам
   const sentences = text.split(/([.!?]+\s*)/).filter(s => s.trim())
-  const transformations = [
-    'missing-vowels',
-    'scrambled-words',
-    'missing-endings',
-    'partial-reversed',
-    'merged-text'
+
+  // Трансформации для предложений (merged-text и mirror-text применяются ко всему предложению)
+  const sentenceTransformations = [
+    'missing-vowels',    // применяется к каждому слову
+    'scrambled-words',   // применяется к каждому слову
+    'missing-endings',   // применяется к каждому слову
+    'merged-text',       // применяется ко всему предложению
+    'mirror-text'        // применяется ко всему предложению
   ]
 
   let result = ''
@@ -217,7 +219,7 @@ function processMixedBySentence(text: string, options: any): string {
     const punctuation = sentences[i + 1] || ''
 
     if (sentence && sentence.length > 0) {
-      const transformationType = transformations[sentenceIndex % transformations.length]
+      const transformationType = sentenceTransformations[sentenceIndex % sentenceTransformations.length]
 
       // Применяем трансформацию к предложению (исключаем рекурсию mixed-types)
       const safeOptions = { ...options, mixedMode: undefined }
@@ -234,28 +236,52 @@ function processMixedBySentence(text: string, options: any): string {
 
 // Функция для смешанного типа по словам (сборная солянка)
 function processMixedByWord(text: string, options: any): string {
-  const words = text.split(/(\s+|[.,!?;:])/)
-  const transformations = [
-    'missing-vowels',
-    'scrambled-words',
-    'missing-endings',
-    'partial-reversed'
+  // Сначала разбиваем на предложения для "целых" трансформаций
+  const sentences = text.split(/([.!?]+\s*)/).filter(s => s.trim())
+
+  // Трансформации: часть применяется к словам, часть к предложениям
+  const allTransformations = [
+    'missing-vowels',     // к словам
+    'scrambled-words',    // к словам
+    'missing-endings',    // к словам
+    'merged-text',        // к предложению целиком
+    'mirror-text'         // к предложению целиком
   ]
 
-  let wordIndex = 0
-  return words.map((part) => {
-    // Обрабатываем только кириллические слова
-    if (/^[а-яё]+$/i.test(part) && part.length > 2) {
-      const transformationType = transformations[wordIndex % transformations.length]
-      wordIndex++
+  let result = ''
+  let transformIndex = 0
 
-      // Применяем трансформацию к отдельному слову (исключаем рекурсию mixed-types)
-      const safeOptions = { ...options, mixedMode: undefined }
-      return transformText(part, transformationType, safeOptions)
+  for (let i = 0; i < sentences.length; i += 2) {
+    const sentence = sentences[i]?.trim()
+    const punctuation = sentences[i + 1] || ''
+
+    if (sentence && sentence.length > 0) {
+      const transformationType = allTransformations[transformIndex % allTransformations.length]
+      transformIndex++
+
+      // Если это трансформация для всего предложения
+      if (transformationType === 'merged-text' || transformationType === 'mirror-text') {
+        const safeOptions = { ...options, mixedMode: undefined }
+        const transformed = transformText(sentence, transformationType, safeOptions)
+        result += transformed + punctuation + ' '
+      } else {
+        // Применяем трансформацию к каждому слову в предложении
+        const words = sentence.split(/(\s+)/)
+        const transformedWords = words.map((part) => {
+          if (/^[а-яё]+$/i.test(part) && part.length > 2) {
+            const safeOptions = { ...options, mixedMode: undefined }
+            return transformText(part, transformationType, safeOptions)
+          }
+          return part
+        }).join('')
+        result += transformedWords + punctuation + ' '
+      }
+    } else if (punctuation.trim()) {
+      result += punctuation + ' '
     }
+  }
 
-    return part // оставляем пробелы и знаки препинания как есть
-  }).join('')
+  return result.trim()
 }
 
 
