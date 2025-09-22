@@ -293,12 +293,11 @@ async function generateReadingTextPDF(params: ReadingTextParams): Promise<Buffer
       if (!Handlebars.helpers.fontSize) {
         Handlebars.registerHelper('fontSize', function(size: string) {
           const fontSizes: Record<string, string> = {
+            'super-huge': '40px',
             'huge': '32px',
             'extra-large': '24px',
             'large': '18px',
-            'medium': '14px',
-            'small': '12px',
-            'tiny': '10px'
+            'medium': '14px'
           }
           return fontSizes[size] || '14px'
         })

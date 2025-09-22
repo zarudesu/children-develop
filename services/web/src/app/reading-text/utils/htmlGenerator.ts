@@ -289,12 +289,11 @@ function processMixedByWord(text: string, options: any): string {
 function getCSS(fontSize: string = 'medium', fontFamily: string = 'sans-serif'): string {
   // Мапинг размеров шрифтов
   const fontSizeMap: Record<string, string> = {
+    'super-huge': '40px',
     'huge': '32px',
     'extra-large': '24px',
     'large': '18px',
-    'medium': '14px',
-    'small': '12px',
-    'tiny': '10px'
+    'medium': '14px'
   }
 
   // Мапинг семейств шрифтов

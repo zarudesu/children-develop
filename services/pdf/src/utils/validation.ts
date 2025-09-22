@@ -13,7 +13,7 @@ const FilwordParamsSchema = z.object({
     message: 'At least one direction must be selected'
   }),
   textCase: z.enum(['upper', 'lower', 'mixed']),
-  fontSize: z.enum(['huge', 'extra-large', 'large', 'medium', 'small', 'tiny']),
+  fontSize: z.enum(['super-huge', 'huge', 'extra-large', 'large', 'medium']),
   allowIntersections: z.boolean()
 })
 
@@ -114,7 +114,7 @@ const ReadingTextParamsSchema = z.object({
     .min(10, 'Text must be at least 10 characters')
     .max(2000, 'Text must be no more than 2000 characters')
     .refine(text => /[а-яё]/i.test(text), 'Text must contain Cyrillic characters'),
-  fontSize: z.enum(['huge', 'extra-large', 'large', 'medium', 'small', 'tiny']),
+  fontSize: z.enum(['super-huge', 'huge', 'extra-large', 'large', 'medium']),
   fontFamily: z.enum(['serif', 'sans-serif', 'mono', 'cursive', 'propisi']),
   textCase: z.enum(['upper', 'lower', 'mixed']),
 
@@ -209,7 +209,7 @@ const CrosswordParamsSchema = z.object({
   gridSize: z.enum(['11x11', '13x13', '15x15', '17x17', '19x19', '21x21']),
   difficulty: z.enum(['easy', 'medium', 'hard']),
   style: z.enum(['classic', 'american', 'scandinavian']),
-  fontSize: z.enum(['huge', 'extra-large', 'large', 'medium', 'small', 'tiny']),
+  fontSize: z.enum(['super-huge', 'huge', 'extra-large', 'large', 'medium']),
   includeAnswers: z.boolean(),
   showNumbers: z.boolean(),
   blackSquareRatio: z.number().min(0.1).max(0.5)
