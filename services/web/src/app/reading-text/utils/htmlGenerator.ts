@@ -286,11 +286,36 @@ function processMixedByWord(text: string, options: any): string {
 
 
 // CSS стили для PDF
-function getCSS(): string {
+function getCSS(fontSize: string = 'medium', fontFamily: string = 'sans-serif'): string {
+  // Мапинг размеров шрифтов
+  const fontSizeMap: Record<string, string> = {
+    'huge': '32px',
+    'extra-large': '24px',
+    'large': '18px',
+    'medium': '14px',
+    'small': '12px',
+    'tiny': '10px'
+  }
+
+  // Мапинг семейств шрифтов
+  const fontFamilyMap: Record<string, string> = {
+    'serif': '"Times New Roman", Times, serif',
+    'sans-serif': '"Arial", "Helvetica", sans-serif',
+    'mono': '"Courier New", Courier, monospace',
+    'cursive': '"Comic Sans MS", cursive',
+    'propisi': '"Kalam", "Comic Sans MS", cursive'
+  }
+
+  const cssSize = fontSizeMap[fontSize] || '14px'
+  const cssFontFamily = fontFamilyMap[fontFamily] || '"Arial", "Helvetica", sans-serif'
+
   return `
     <style>
+      @import url('https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&family=Comfortaa:wght@300;400;700&display=swap');
+
       body {
-        font-family: Arial, sans-serif;
+        font-family: ${cssFontFamily};
+        font-size: ${cssSize};
         padding: 2cm;
         line-height: 1.6;
         margin: 0;
@@ -302,7 +327,8 @@ function getCSS(): string {
         margin-bottom: 20px;
       }
       .exercise-text {
-        font-size: 14pt;
+        font-size: ${cssSize};
+        font-family: ${cssFontFamily};
         line-height: 1.8;
         padding: 20px;
         border: 1px solid #ccc;
@@ -486,7 +512,7 @@ export function generateReadingTextHTML(params: ReadingTextParams): string {
 <head>
   <meta charset="UTF-8">
   <title>${title}</title>
-  ${getCSS()}
+  ${getCSS(params.fontSize, params.fontFamily)}
 </head>
 <body>
   ${params.hasTitle ? `<div class="title">${title}</div>` : ''}

@@ -219,14 +219,18 @@ export default function ReadingTextGenerator({
                 Превью: {FONT_SIZE_SETTINGS[params.fontSize].name} + {FONT_FAMILY_SETTINGS[params.fontFamily].name}
               </div>
               <div
-                className="text-gray-800"
+                className="text-gray-800 p-2 bg-white rounded border-2 border-dashed border-gray-300"
                 style={{
                   fontSize: FONT_SIZE_SETTINGS[params.fontSize].cssSize,
                   lineHeight: FONT_SIZE_SETTINGS[params.fontSize].lineHeight,
-                  fontFamily: FONT_FAMILY_SETTINGS[params.fontFamily].cssFamily
+                  fontFamily: FONT_FAMILY_SETTINGS[params.fontFamily].cssFamily,
+                  fontDisplay: 'swap'
                 }}
               >
-                Пример текста для чтения
+                Пример текста для чтения: Солнце ярко светило над зеленым лугом.
+              </div>
+              <div className="text-xs text-gray-500 mt-1">
+                CSS: font-family: {FONT_FAMILY_SETTINGS[params.fontFamily].cssFamily}; font-size: {FONT_SIZE_SETTINGS[params.fontSize].cssSize};
               </div>
             </div>
           </div>
