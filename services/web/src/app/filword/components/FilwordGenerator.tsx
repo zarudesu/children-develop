@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react'
 import { FilwordParams, GridSize, TextCase, FontSize } from '../types'
 import { validateFilwordParams } from '../utils/validation'
+import { DownloadTracker } from '../../utils/downloadTracker'
 import ParametersForm from './ParametersForm'
 import ResultsDisplay from './ResultsDisplay'
 
@@ -18,6 +19,7 @@ export default function FilwordGenerator() {
     },
     textCase: 'upper',
     fontSize: 'large', // По умолчанию крупный шрифт для лучшей читаемости
+    allowIntersections: true, // По умолчанию разрешаем пересечения (классический филворд)
   })
   
   const [isGenerating, setIsGenerating] = useState(false)
@@ -63,7 +65,8 @@ export default function FilwordGenerator() {
     }, 100)
     
     try {
-      const response = await fetch('/api/generate', {
+      // Используем DownloadTracker для отслеживания скачиваний
+      const response = await DownloadTracker.trackDownloadFromFetch('/api/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -79,7 +82,7 @@ export default function FilwordGenerator() {
       // Получаем PDF как blob
       const pdfBlob = await response.blob()
       const pdfUrl = URL.createObjectURL(pdfBlob)
-      
+
       setResult({
         pdfUrl,
         metadata: {
@@ -100,24 +103,28 @@ export default function FilwordGenerator() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
-      {/* Форма настроек */}
-      <ParametersForm
-        initialParams={params}
-        onParamsChange={setParams}
-        onGenerate={handleGenerate}
-        isLoading={isGenerating}
-        error={error} // Передаем ошибку в форму для отображения
-      />
-
-      {/* Результат сразу под формой */}
-      <div ref={resultsRef}>
-        <ResultsDisplay
-          result={result}
-          error={error}
+    <>
+      <div className="max-w-4xl mx-auto space-y-8">
+        {/* Форма настроек */}
+        <ParametersForm
+          initialParams={params}
+          onParamsChange={setParams}
+          onGenerate={handleGenerate}
           isLoading={isGenerating}
+          error={error} // Передаем ошибку в форму для отображения
         />
+
+        {/* Результат сразу под формой */}
+        <div ref={resultsRef}>
+          <ResultsDisplay
+            result={result}
+            error={error}
+            isLoading={isGenerating}
+          />
+        </div>
+
       </div>
-    </div>
+
+    </>
   )
 }

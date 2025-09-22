@@ -1,7 +1,7 @@
 import express from 'express'
 import cors from 'cors'
 import { generatePDF, generateHTML } from './services/pdf-generator'
-import { validateRequest, validateReadingTextRequest } from './utils/validation'
+import { validateRequest, validateReadingTextRequest, validateCrosswordRequest } from './utils/validation'
 import { GenerateRequest, GeneratorType } from './types'
 
 const app = express()
@@ -66,6 +66,8 @@ app.post('/debug-html', async (req, res) => {
 
     if (requestBody.type === 'reading-text') {
       validation = validateReadingTextRequest(requestBody.params)
+    } else if (requestBody.type === 'crossword') {
+      validation = validateCrosswordRequest(requestBody.params)
     } else {
       // По умолчанию валидируем как филворд для обратной совместимости
       validation = validateRequest(requestBody.params || requestBody)
@@ -176,6 +178,8 @@ app.post('/generate', async (req, res) => {
 
     if (requestBody.type === 'reading-text') {
       validation = validateReadingTextRequest(requestBody.params)
+    } else if (requestBody.type === 'crossword') {
+      validation = validateCrosswordRequest(requestBody.params)
     } else {
       // По умолчанию валидируем как филворд для обратной совместимости
       validation = validateRequest(requestBody.params || requestBody)

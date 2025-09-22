@@ -1,6 +1,7 @@
 import './globals.css'
 import type { Metadata } from 'next'
 import Navigation from '../components/Navigation'
+import { FooterStats } from '../components/FooterStats'
 
 export const metadata: Metadata = {
   title: 'ChildDev - Генераторы образовательных заданий',
@@ -36,6 +37,7 @@ export default function RootLayout({
               <p className="text-gray-400 text-xs">
                 © 2025 ChildDev. Образовательная платформа.
               </p>
+              <FooterStats />
             </div>
           </div>
         </footer>

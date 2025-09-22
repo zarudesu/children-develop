@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import ReadingTextGenerator from './components/ReadingTextGenerator'
 import { ReadingTextParams } from './types'
+import { DownloadTracker } from '../utils/downloadTracker'
 
 export default function ReadingTextPage() {
   const [isGenerating, setIsGenerating] = useState(false)
@@ -13,7 +14,8 @@ export default function ReadingTextPage() {
 
       console.log('Generating reading text with params:', params)
 
-      const response = await fetch('/api/generate', {
+      // Используем DownloadTracker для отслеживания скачиваний
+      const response = await DownloadTracker.trackDownloadFromFetch('/api/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -71,22 +73,24 @@ export default function ReadingTextPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="container mx-auto px-4">
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-gray-800 mb-4">
-            Конструктор текстов для чтения
-          </h1>
-          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            Создавайте специальные упражнения для развития техники чтения, скорочтения
-            и коррекции дислексии. 12 различных типов заданий для эффективного обучения.
-          </p>
-        </div>
+    <>
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="container mx-auto px-4">
+          <div className="mb-8 text-center">
+            <h1 className="text-3xl font-bold text-gray-800 mb-4">
+              Конструктор текстов для чтения
+            </h1>
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+              Создавайте специальные упражнения для развития техники чтения, скорочтения
+              и коррекции дислексии. 12 различных типов заданий для эффективного обучения.
+            </p>
+          </div>
 
-        <ReadingTextGenerator
-          onGenerate={handleGenerate}
-          loading={isGenerating}
-        />
+          <ReadingTextGenerator
+            onGenerate={handleGenerate}
+            loading={isGenerating}
+          />
+
 
         {/* Информационная секция */}
         <div className="mt-16 max-w-4xl mx-auto">
@@ -148,7 +152,9 @@ export default function ReadingTextPage() {
             </div>
           </div>
         </div>
+        </div>
       </div>
-    </div>
+
+    </>
   )
 }

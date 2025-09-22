@@ -12,14 +12,16 @@ export type ReadingTextType =
   | 'mixed-types'         // 11. Смешанный тип ("сборная солянка")
   | 'word-ladder'         // 12. Лесенка из слов
 
-export type FontSize = 'large' | 'medium' | 'small'
+export type FontSize = 'huge' | 'extra-large' | 'large' | 'medium' | 'small' | 'tiny'
 export type TextCase = 'upper' | 'lower' | 'mixed'
+export type FontFamily = 'serif' | 'sans-serif' | 'mono' | 'cursive' | 'propisi'
 
 export interface ReadingTextParams {
   // Основные параметры
   textType: ReadingTextType
   inputText: string
   fontSize: FontSize
+  fontFamily: FontFamily
   textCase: TextCase
 
   // Настройки для конкретных типов
@@ -59,24 +61,88 @@ export const FONT_SIZE_SETTINGS: Record<FontSize, {
   description: string
   baseFontSize: number
   lineHeight: number
+  cssSize: string
 }> = {
+  'huge': {
+    name: 'Огромный (32px)',
+    description: 'Максимальный размер для слабовидящих',
+    baseFontSize: 32,
+    lineHeight: 2.2,
+    cssSize: '32px'
+  },
+  'extra-large': {
+    name: 'Очень крупный (24px)',
+    description: 'Для дошкольников и начального обучения',
+    baseFontSize: 24,
+    lineHeight: 2.0,
+    cssSize: '24px'
+  },
   'large': {
-    name: 'Крупный',
-    description: 'Для начального обучения и проблем со зрением',
-    baseFontSize: 14,
-    lineHeight: 1.8
+    name: 'Крупный (18px)',
+    description: 'Для проблем со зрением и младших школьников',
+    baseFontSize: 18,
+    lineHeight: 1.8,
+    cssSize: '18px'
   },
   'medium': {
-    name: 'Средний',
+    name: 'Средний (14px)',
     description: 'Стандартный размер для школьников',
-    baseFontSize: 12,
-    lineHeight: 1.6
+    baseFontSize: 14,
+    lineHeight: 1.6,
+    cssSize: '14px'
   },
   'small': {
-    name: 'Обычный',
+    name: 'Обычный (12px)',
     description: 'Как в учебниках',
-    baseFontSize: 11,
-    lineHeight: 1.4
+    baseFontSize: 12,
+    lineHeight: 1.4,
+    cssSize: '12px'
+  },
+  'tiny': {
+    name: 'Мелкий (10px)',
+    description: 'Компактный размер для сложных текстов',
+    baseFontSize: 10,
+    lineHeight: 1.3,
+    cssSize: '10px'
+  }
+}
+
+// Настройки для семейств шрифтов
+export const FONT_FAMILY_SETTINGS: Record<FontFamily, {
+  name: string
+  description: string
+  cssFamily: string
+  example: string
+}> = {
+  'serif': {
+    name: 'С засечками',
+    description: 'Классический шрифт, как в книгах',
+    cssFamily: '"Times New Roman", Times, serif',
+    example: 'Абв'
+  },
+  'sans-serif': {
+    name: 'Без засечек',
+    description: 'Современный шрифт, легко читается',
+    cssFamily: '"Arial", "Helvetica", sans-serif',
+    example: 'Абв'
+  },
+  'mono': {
+    name: 'Моноширинный',
+    description: 'Все буквы одинаковой ширины',
+    cssFamily: '"Courier New", Courier, monospace',
+    example: 'Абв'
+  },
+  'cursive': {
+    name: 'Рукописный',
+    description: 'Имитация письма от руки',
+    cssFamily: '"Comic Sans MS", cursive',
+    example: 'Абв'
+  },
+  'propisi': {
+    name: 'Пропись',
+    description: 'Рукописный шрифт для обучения письму',
+    cssFamily: '"Kalam", "Comic Sans MS", cursive',
+    example: 'Абв'
   }
 }
 

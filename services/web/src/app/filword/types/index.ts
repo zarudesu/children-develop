@@ -13,6 +13,7 @@ export interface FilwordParams {
   }
   textCase: TextCase
   fontSize: FontSize
+  allowIntersections: boolean
 }
 
 // Предустановленные категории слов для MVP

@@ -2,8 +2,9 @@ import { chromium, Browser, BrowserContext } from 'playwright'
 import { readFileSync } from 'fs'
 import { join } from 'path'
 import Handlebars from 'handlebars'
-import { FilwordParams, TemplateData, GenerateRequest, ReadingTextParams, ReadingTextTemplateData, TEXT_TYPE_DESCRIPTIONS } from '../types'
+import { FilwordParams, TemplateData, GenerateRequest, ReadingTextParams, ReadingTextTemplateData, TEXT_TYPE_DESCRIPTIONS, FONT_FAMILY_SETTINGS, CrosswordParams } from '../types'
 import { FilwordEngine } from './filword-engine'
+import { CrosswordEngine } from './crossword-engine'
 import { applyTextCase } from '../utils/text-utils'
 import { TextTransformer } from './text-transformer'
 
@@ -66,6 +67,8 @@ export async function generatePDF(request: GenerateRequest | FilwordParams): Pro
 
   if (requestData.type === 'reading-text') {
     return generateReadingTextPDF(requestData.params as ReadingTextParams)
+  } else if (requestData.type === 'crossword') {
+    return generateCrosswordPDF(requestData.params as CrosswordParams)
   } else {
     return generateFilwordPDF(requestData.params as FilwordParams)
   }
@@ -129,6 +132,8 @@ export async function generateHTML(request: GenerateRequest | FilwordParams): Pr
 
   if (requestData.type === 'reading-text') {
     return generateReadingTextHTML(requestData.params as ReadingTextParams)
+  } else if (requestData.type === 'crossword') {
+    return generateCrosswordHTML(requestData.params as CrosswordParams)
   } else {
     return generateFilwordHTML(requestData.params as FilwordParams)
   }
@@ -142,7 +147,7 @@ async function generateFilwordPDF(params: FilwordParams): Promise<Buffer> {
     
     // Генерация филворда
     const engine = new FilwordEngine(params.gridSize)
-    const filwordData = engine.generateGrid(params.words, params.directions)
+    const filwordData = engine.generateGrid(params.words, params.directions, params.allowIntersections)
     
     console.log(`Grid generated in ${Date.now() - startTime}ms`)
     
@@ -284,6 +289,36 @@ async function generateReadingTextPDF(params: ReadingTextParams): Promise<Buffer
         })
       }
 
+      // Хелпер для размера шрифта
+      if (!Handlebars.helpers.fontSize) {
+        Handlebars.registerHelper('fontSize', function(size: string) {
+          const fontSizes: Record<string, string> = {
+            'huge': '32px',
+            'extra-large': '24px',
+            'large': '18px',
+            'medium': '14px',
+            'small': '12px',
+            'tiny': '10px'
+          }
+          return fontSizes[size] || '14px'
+        })
+      }
+
+      // Хелпер для семейства шрифта
+      if (!Handlebars.helpers.fontFamily) {
+        Handlebars.registerHelper('fontFamily', function(family: string) {
+          const fontFamilies: Record<string, string> = {
+            'serif': '"Times New Roman", Times, serif',
+            'sans-serif': '"Arial", "Helvetica", sans-serif',
+            'mono': '"Courier New", Courier, monospace',
+            'cursive': '"Comic Sans MS", cursive',
+            'propisi': '"Kalam", "Comic Sans MS", cursive'
+          }
+          return fontFamilies[family] || '"Arial", "Helvetica", sans-serif'
+        })
+      }
+
+
       const compiledTemplate = Handlebars.compile(templateContent)
 
       // Подготовка данных для шаблона
@@ -294,6 +329,7 @@ async function generateReadingTextPDF(params: ReadingTextParams): Promise<Buffer
         originalText: params.inputText,
         transformedText,
         fontSize: params.fontSize,
+        fontFamily: params.fontFamily || 'sans-serif',
         pageNumbers: params.pageNumbers !== false,
         includeInstructions: params.includeInstructions !== false,
         instructions: params.customInstructions,
@@ -380,6 +416,35 @@ async function generateReadingTextHTML(params: ReadingTextParams): Promise<strin
       })
     }
 
+    // Хелпер для размера шрифта
+    if (!Handlebars.helpers.fontSize) {
+      Handlebars.registerHelper('fontSize', function(size: string) {
+        const fontSizes: Record<string, string> = {
+          'huge': '32px',
+          'extra-large': '24px',
+          'large': '18px',
+          'medium': '14px',
+          'small': '12px',
+          'tiny': '10px'
+        }
+        return fontSizes[size] || '14px'
+      })
+    }
+
+    // Хелпер для семейства шрифта
+    if (!Handlebars.helpers.fontFamily) {
+      Handlebars.registerHelper('fontFamily', function(family: string) {
+        const fontFamilies: Record<string, string> = {
+          'serif': '"Times New Roman", Times, serif',
+          'sans-serif': '"Arial", "Helvetica", sans-serif',
+          'mono': '"Courier New", Courier, monospace',
+          'cursive': '"Comic Sans MS", cursive',
+          'propisi': '"Kalam", "Comic Sans MS", cursive'
+        }
+        return fontFamilies[family] || '"Arial", "Helvetica", sans-serif'
+      })
+    }
+
     const compiledTemplate = Handlebars.compile(templateContent)
 
     // Подготовка данных для шаблона
@@ -390,6 +455,7 @@ async function generateReadingTextHTML(params: ReadingTextParams): Promise<strin
       originalText: params.inputText,
       transformedText,
       fontSize: params.fontSize,
+      fontFamily: params.fontFamily || 'sans-serif',
       pageNumbers: params.pageNumbers !== false,
       includeInstructions: params.includeInstructions !== false,
       instructions: params.customInstructions,
@@ -419,7 +485,7 @@ async function generateFilwordHTML(params: FilwordParams): Promise<string> {
 
     // Генерация филворда
     const engine = new FilwordEngine(params.gridSize)
-    const filwordData = engine.generateGrid(params.words, params.directions)
+    const filwordData = engine.generateGrid(params.words, params.directions, params.allowIntersections)
 
     // Применение регистра к словам
     const processedWords = params.words.map(word => applyTextCase(word, params.textCase))
@@ -485,6 +551,89 @@ async function generateFilwordHTML(params: FilwordParams): Promise<string> {
   } catch (error) {
     console.error('Filword HTML generation failed:', error)
     throw error
+  }
+}
+
+async function generateCrosswordPDF(params: CrosswordParams): Promise<Buffer> {
+  const html = await generateCrosswordHTML(params)
+  return generatePDFFromHTML(html)
+}
+
+async function generateCrosswordHTML(params: CrosswordParams): Promise<string> {
+  try {
+    console.log(`Generating crossword HTML for ${params.gridSize} grid with ${params.words.length} words`)
+
+    // Генерация кроссворда
+    const engine = new CrosswordEngine(params.gridSize)
+    const crosswordData = engine.generateCrossword(params)
+
+    // Загрузка и компиляция шаблонов
+    const templatesPath = process.env.NODE_ENV === 'production'
+      ? join(process.cwd(), 'templates')
+      : join(__dirname, '../templates')
+
+    const layoutTemplate = readFileSync(join(templatesPath, 'layout.hbs'), 'utf8')
+    const crosswordTemplate = readFileSync(join(templatesPath, 'crossword.hbs'), 'utf8')
+
+    const compiledLayout = Handlebars.compile(layoutTemplate)
+    const compiledCrossword = Handlebars.compile(crosswordTemplate)
+
+    // Данные для шаблона
+    const templateData = {
+      title: 'Кроссворд',
+      fontSize: params.fontSize,
+      grid: crosswordData.grid,
+      gridSize: crosswordData.size,
+      clues: crosswordData.clues,
+      showNumbers: params.showNumbers,
+      includeAnswers: params.includeAnswers,
+      isAnswerPage: false
+    }
+
+    // Первая страница (задание)
+    const exerciseContent = compiledCrossword(templateData)
+    const exercisePage = compiledLayout({
+      title: 'Кроссворд',
+      content: exerciseContent,
+      pageNumber: 1
+    })
+
+    // Вторая страница (ответы)
+    const answerContent = compiledCrossword({
+      ...templateData,
+      isAnswerPage: true
+    })
+    const answerPage = compiledLayout({
+      title: 'Кроссворд - Ответы',
+      content: answerContent,
+      pageNumber: 2
+    })
+
+    // Объединение страниц
+    const fullHTML = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <style>
+          @page { size: A4; margin: 15mm; }
+          .page-break { page-break-before: always; }
+        </style>
+      </head>
+      <body>
+        ${exercisePage}
+        <div class="page-break"></div>
+        ${answerPage}
+      </body>
+      </html>
+    `
+
+    console.log(`Crossword HTML generated successfully`)
+    return fullHTML
+
+  } catch (error) {
+    console.error('Crossword HTML generation failed:', error)
+    throw new Error(`HTML generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
   }
 }
 

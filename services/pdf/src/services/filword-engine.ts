@@ -29,7 +29,7 @@ export class FilwordEngine {
     return available
   }
 
-  private canPlaceWord(word: string, row: number, col: number, direction: Direction): boolean {
+  private canPlaceWord(word: string, row: number, col: number, direction: Direction, allowIntersections: boolean): boolean {
     const [deltaRow, deltaCol] = DIRECTION_VECTORS[direction]
     
     // Проверка границ
@@ -45,10 +45,17 @@ export class FilwordEngine {
       const currentRow = row + (deltaRow * i)
       const currentCol = col + (deltaCol * i)
       const cell = this.grid[currentRow][currentCol]
-      
-      // Если клетка занята, но буква не совпадает - нельзя размещать
-      if (cell.isPartOfWord && cell.letter !== word[i].toUpperCase()) {
-        return false
+
+      if (allowIntersections) {
+        // Классический филворд: разрешены пересечения только одинаковыми буквами
+        if (cell.isPartOfWord && cell.letter !== word[i].toUpperCase()) {
+          return false
+        }
+      } else {
+        // Упрощенный режим: запрещены любые пересечения
+        if (cell.isPartOfWord) {
+          return false
+        }
       }
     }
 
@@ -123,13 +130,13 @@ export class FilwordEngine {
     })
   }
 
-  private findPlacementPositions(word: string): Array<{row: number, col: number, direction: Direction}> {
+  private findPlacementPositions(word: string, allowIntersections: boolean): Array<{row: number, col: number, direction: Direction}> {
     const positions: Array<{row: number, col: number, direction: Direction}> = []
-    
+
     for (let row = 0; row < this.size; row++) {
       for (let col = 0; col < this.size; col++) {
         for (const direction of this.availableDirections) {
-          if (this.canPlaceWord(word, row, col, direction)) {
+          if (this.canPlaceWord(word, row, col, direction, allowIntersections)) {
             positions.push({ row, col, direction })
           }
         }
@@ -165,7 +172,7 @@ export class FilwordEngine {
     }
   }
 
-  public generateGrid(words: string[], directions: FilwordParams['directions']): FilwordGrid {
+  public generateGrid(words: string[], directions: FilwordParams['directions'], allowIntersections: boolean = true): FilwordGrid {
     // Сбрасываем состояние  
     this.grid = this.initializeGrid()
     this.placedWords = []
@@ -181,13 +188,13 @@ export class FilwordEngine {
     
     while (attempt < maxAttempts) {
       try {
-        this.attemptPlacement(words, attempt)
+        this.attemptPlacement(words, attempt, allowIntersections)
         break // Успешно разместили все слова
       } catch (error) {
         attempt++
         if (attempt >= maxAttempts) {
           // В последней попытке разрешаем частичное размещение
-          this.attemptPlacement(words, attempt, true)
+          this.attemptPlacement(words, attempt, allowIntersections, true)
           break
         }
         // Сбрасываем и пробуем заново
@@ -206,7 +213,7 @@ export class FilwordEngine {
     }
   }
 
-  private attemptPlacement(words: string[], attempt: number, allowPartial: boolean = false): void {
+  private attemptPlacement(words: string[], attempt: number, allowIntersections: boolean, allowPartial: boolean = false): void {
     // Сортируем слова по длине (длинные первыми для лучшего размещения)
     const sortedWords = [...words].sort((a, b) => b.length - a.length)
     
@@ -223,7 +230,7 @@ export class FilwordEngine {
     // Размещаем слова
     for (let i = 0; i < sortedWords.length; i++) {
       const word = sortedWords[i]
-      const positions = this.findPlacementPositions(word)
+      const positions = this.findPlacementPositions(word, allowIntersections)
       
       if (positions.length === 0) {
         if (!allowPartial) {

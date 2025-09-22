@@ -5,9 +5,11 @@ import {
   ReadingTextParams,
   ReadingTextType,
   FontSize,
+  FontFamily,
   TextCase,
   TEXT_TYPE_DESCRIPTIONS,
-  FONT_SIZE_SETTINGS
+  FONT_SIZE_SETTINGS,
+  FONT_FAMILY_SETTINGS
 } from '../types'
 
 interface ReadingTextGeneratorProps {
@@ -22,7 +24,8 @@ export default function ReadingTextGenerator({
   const [params, setParams] = useState<ReadingTextParams>({
     textType: 'normal',
     inputText: 'Боря плыл в лодке. Над рекой летали птицы. Солнце ярко светило.',
-    fontSize: 'large',
+    fontSize: 'medium',
+    fontFamily: 'sans-serif',
     textCase: 'mixed',
     hasTitle: true,
     title: 'Упражнение на технику чтения',
@@ -182,19 +185,80 @@ export default function ReadingTextGenerator({
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Размер шрифта
             </label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-2">
               {Object.entries(FONT_SIZE_SETTINGS).map(([size, info]) => (
                 <button
                   key={size}
                   onClick={() => handleParamChange('fontSize', size as FontSize)}
-                  className={`p-3 text-center border rounded-md transition-colors ${
+                  className={`p-3 text-left border rounded-lg transition-all transform hover:scale-105 ${
                     params.fontSize === size
-                      ? 'bg-blue-500 text-white border-blue-500'
-                      : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                      ? 'bg-blue-500 text-white border-blue-500 shadow-lg'
+                      : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50 hover:border-gray-400'
                   }`}
                 >
-                  <div className="font-medium">{info.name}</div>
-                  <div className="text-xs opacity-75">{info.baseFontSize}pt</div>
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <div className="font-medium">{info.name}</div>
+                      <div className="text-xs opacity-75">{info.description}</div>
+                    </div>
+                    <div className={`text-sm font-mono px-2 py-1 rounded ${
+                      params.fontSize === size
+                        ? 'bg-blue-400 text-white'
+                        : 'bg-gray-100 text-gray-600'
+                    }`}>
+                      {info.cssSize}
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            {/* Превью размера шрифта и семейства */}
+            <div className="mt-4 p-4 bg-gray-50 rounded-lg border">
+              <div className="text-xs text-gray-600 mb-2">
+                Превью: {FONT_SIZE_SETTINGS[params.fontSize].name} + {FONT_FAMILY_SETTINGS[params.fontFamily].name}
+              </div>
+              <div
+                className="text-gray-800"
+                style={{
+                  fontSize: FONT_SIZE_SETTINGS[params.fontSize].cssSize,
+                  lineHeight: FONT_SIZE_SETTINGS[params.fontSize].lineHeight,
+                  fontFamily: FONT_FAMILY_SETTINGS[params.fontFamily].cssFamily
+                }}
+              >
+                Пример текста для чтения
+              </div>
+            </div>
+          </div>
+
+          {/* Семейство шрифтов */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Тип шрифта
+            </label>
+            <div className="space-y-2">
+              {Object.entries(FONT_FAMILY_SETTINGS).map(([family, info]) => (
+                <button
+                  key={family}
+                  onClick={() => handleParamChange('fontFamily', family as FontFamily)}
+                  className={`w-full p-3 text-left border rounded-lg transition-all transform hover:scale-105 ${
+                    params.fontFamily === family
+                      ? 'bg-purple-500 text-white border-purple-500 shadow-lg'
+                      : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50 hover:border-gray-400'
+                  }`}
+                >
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <div className="font-medium">{info.name}</div>
+                      <div className="text-xs opacity-75">{info.description}</div>
+                    </div>
+                    <div
+                      className="text-xl"
+                      style={{ fontFamily: info.cssFamily }}
+                    >
+                      {info.example}
+                    </div>
+                  </div>
                 </button>
               ))}
             </div>
@@ -486,7 +550,8 @@ export default function ReadingTextGenerator({
             <ul className="text-sm text-gray-600 space-y-1">
               <li>• PDF с обработанным текстом</li>
               <li>• {params.includeInstructions ? 'Страница с инструкциями' : 'Без инструкций'}</li>
-              <li>• Шрифт: {FONT_SIZE_SETTINGS[params.fontSize].name}</li>
+              <li>• Размер: {FONT_SIZE_SETTINGS[params.fontSize].name} ({FONT_SIZE_SETTINGS[params.fontSize].baseFontSize}pt)</li>
+              <li>• Шрифт: {FONT_FAMILY_SETTINGS[params.fontFamily].name}</li>
               <li>• {params.pageNumbers ? 'С номерами страниц' : 'Без номеров страниц'}</li>
             </ul>
           </div>

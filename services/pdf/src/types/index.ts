@@ -1,6 +1,7 @@
 export type GridSize = '10x10' | '11x11' | '12x12' | '13x13' | '14x14' | '15x15' | '16x16' | '17x17' | '18x18' | '19x19' | '20x20' | '21x21' | '22x22' | '23x23' | '24x24' | '25x25'
 export type TextCase = 'upper' | 'lower' | 'mixed'
-export type FontSize = 'large' | 'medium' | 'small' | 'cursive'
+export type FontSize = 'huge' | 'extra-large' | 'large' | 'medium' | 'small' | 'tiny'
+export type FontFamily = 'serif' | 'sans-serif' | 'mono' | 'cursive' | 'propisi'
 export type Direction = 'right' | 'left' | 'up' | 'down'
 
 // Типы для конструктора текстов
@@ -18,7 +19,7 @@ export type ReadingTextType =
   | 'mixed-types'         // 11. Смешанный тип ("сборная солянка")
   | 'word-ladder'         // 12. Лесенка из слов
 
-export type GeneratorType = 'filword' | 'reading-text'
+export type GeneratorType = 'filword' | 'reading-text' | 'crossword'
 
 export interface FilwordParams {
   words: string[]
@@ -31,6 +32,7 @@ export interface FilwordParams {
   }
   textCase: TextCase
   fontSize: FontSize
+  allowIntersections: boolean
 }
 
 export interface GridCell {
@@ -58,6 +60,7 @@ export interface ReadingTextParams {
   textType: ReadingTextType
   inputText: string
   fontSize: FontSize
+  fontFamily: FontFamily
   textCase: TextCase
 
   // Настройки для конкретных типов
@@ -79,9 +82,61 @@ export interface ReadingTextParams {
   customInstructions?: string
 }
 
+// Типы для кроссвордов
+export type CrosswordSize = '11x11' | '13x13' | '15x15' | '17x17' | '19x19' | '21x21'
+export type CrosswordDifficulty = 'easy' | 'medium' | 'hard'
+export type CrosswordStyle = 'classic' | 'american' | 'scandinavian'
+
+export interface CrosswordWord {
+  word: string
+  clue: string
+  answer: string
+  length: number
+}
+
+export interface CrosswordCell {
+  letter: string
+  isBlack: boolean
+  number?: number
+  isPartOfWord: boolean
+  wordIds: number[]
+}
+
+export interface PlacedCrosswordWord {
+  id: number
+  word: string
+  clue: string
+  startRow: number
+  startCol: number
+  direction: 'horizontal' | 'vertical'
+  length: number
+  number: number
+}
+
+export interface CrosswordGrid {
+  grid: CrosswordCell[][]
+  size: number
+  placedWords: PlacedCrosswordWord[]
+  clues: {
+    horizontal: Array<{number: number, clue: string, length: number}>
+    vertical: Array<{number: number, clue: string, length: number}>
+  }
+}
+
+export interface CrosswordParams {
+  words: CrosswordWord[]
+  gridSize: CrosswordSize
+  difficulty: CrosswordDifficulty
+  style: CrosswordStyle
+  fontSize: 'large' | 'medium' | 'small'
+  includeAnswers: boolean
+  showNumbers: boolean
+  blackSquareRatio: number
+}
+
 export interface GenerateRequest {
   type: GeneratorType
-  params: FilwordParams | ReadingTextParams
+  params: FilwordParams | ReadingTextParams | CrosswordParams
 }
 
 export interface TemplateData {
@@ -101,6 +156,7 @@ export interface ReadingTextTemplateData {
   originalText: string
   transformedText: string
   fontSize: FontSize
+  fontFamily: FontFamily
   pageNumbers: boolean
   includeInstructions: boolean
   instructions?: string
@@ -217,5 +273,38 @@ export const TEXT_TYPE_DESCRIPTIONS: Record<ReadingTextType, {
     description: 'Нарастающие фразы по принципу лесенки',
     difficulty: 'easy',
     purpose: 'Развитие плавности чтения'
+  }
+}
+
+// Настройки для семейств шрифтов
+export const FONT_FAMILY_SETTINGS: Record<FontFamily, {
+  name: string
+  description: string
+  cssFamily: string
+}> = {
+  'serif': {
+    name: 'С засечками',
+    description: 'Классический шрифт, как в книгах',
+    cssFamily: '"Times New Roman", Times, serif'
+  },
+  'sans-serif': {
+    name: 'Без засечек',
+    description: 'Современный шрифт, легко читается',
+    cssFamily: '"Arial", "Helvetica", sans-serif'
+  },
+  'mono': {
+    name: 'Моноширинный',
+    description: 'Все буквы одинаковой ширины',
+    cssFamily: '"Courier New", Courier, monospace'
+  },
+  'cursive': {
+    name: 'Рукописный',
+    description: 'Имитация письма от руки',
+    cssFamily: '"Comic Sans MS", cursive'
+  },
+  'propisi': {
+    name: 'Пропись',
+    description: 'Шрифт для обучения письму',
+    cssFamily: '"Propisi Regular", "Comic Sans MS", cursive'
   }
 }

@@ -30,7 +30,8 @@ export const readingTextParamsSchema = z.object({
       'Текст должен содержать кириллические символы'
     ),
 
-  fontSize: z.enum(['large', 'medium', 'small'] as const),
+  fontSize: z.enum(['huge', 'extra-large', 'large', 'medium', 'small', 'tiny'] as const),
+  fontFamily: z.enum(['serif', 'sans-serif', 'mono', 'cursive', 'propisi'] as const),
   textCase: z.enum(['upper', 'lower', 'mixed'] as const),
 
   // Опциональные параметры для специфичных типов

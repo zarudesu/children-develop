@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { FilwordParams, ReadingTextParams } from '../types'
+import { FilwordParams, ReadingTextParams, CrosswordParams } from '../types'
 
 const FilwordParamsSchema = z.object({
   words: z.array(z.string().min(3).max(15).regex(/^[а-яёa-z]+$/i, 'Only Cyrillic and Latin letters allowed')).min(1).max(20),
@@ -13,7 +13,8 @@ const FilwordParamsSchema = z.object({
     message: 'At least one direction must be selected'
   }),
   textCase: z.enum(['upper', 'lower', 'mixed']),
-  fontSize: z.enum(['large', 'medium', 'small', 'cursive'])
+  fontSize: z.enum(['huge', 'extra-large', 'large', 'medium', 'small', 'tiny']),
+  allowIntersections: z.boolean()
 })
 
 interface ValidationResult {
@@ -113,7 +114,8 @@ const ReadingTextParamsSchema = z.object({
     .min(10, 'Text must be at least 10 characters')
     .max(2000, 'Text must be no more than 2000 characters')
     .refine(text => /[а-яё]/i.test(text), 'Text must contain Cyrillic characters'),
-  fontSize: z.enum(['large', 'medium', 'small']),
+  fontSize: z.enum(['huge', 'extra-large', 'large', 'medium', 'small', 'tiny']),
+  fontFamily: z.enum(['serif', 'sans-serif', 'mono', 'cursive', 'propisi']),
   textCase: z.enum(['upper', 'lower', 'mixed']),
 
   // Опциональные параметры
@@ -192,6 +194,81 @@ export function validateReadingTextRequest(body: any): ReadingTextValidationResu
     return {
       success: false,
       error: 'Unknown validation error'
+    }
+  }
+}
+
+// Схема для параметров crossword
+const CrosswordParamsSchema = z.object({
+  words: z.array(z.object({
+    word: z.string().min(3).max(15),
+    clue: z.string().min(5).max(200),
+    answer: z.string().min(3).max(15),
+    length: z.number().min(3).max(15)
+  })).min(3).max(30),
+  gridSize: z.enum(['11x11', '13x13', '15x15', '17x17', '19x19', '21x21']),
+  difficulty: z.enum(['easy', 'medium', 'hard']),
+  style: z.enum(['classic', 'american', 'scandinavian']),
+  fontSize: z.enum(['huge', 'extra-large', 'large', 'medium', 'small', 'tiny']),
+  includeAnswers: z.boolean(),
+  showNumbers: z.boolean(),
+  blackSquareRatio: z.number().min(0.1).max(0.5)
+})
+
+interface CrosswordValidationResult {
+  success: boolean
+  error?: string
+  data?: CrosswordParams
+}
+
+export function validateCrosswordRequest(body: any): CrosswordValidationResult {
+  try {
+    const validated = CrosswordParamsSchema.parse(body)
+
+    // Дополнительные проверки
+    for (const wordObj of validated.words) {
+      if (wordObj.word !== wordObj.answer) {
+        return {
+          success: false,
+          error: `Word and answer must match for: ${wordObj.word}`
+        }
+      }
+
+      if (wordObj.word.length !== wordObj.length) {
+        return {
+          success: false,
+          error: `Word length mismatch for: ${wordObj.word}`
+        }
+      }
+    }
+
+    // Проверка на дубли
+    const words = validated.words.map(w => w.word.toLowerCase())
+    const uniqueWords = new Set(words)
+    if (uniqueWords.size < words.length) {
+      return {
+        success: false,
+        error: 'Duplicate words found in crossword'
+      }
+    }
+
+    return {
+      success: true,
+      data: validated
+    }
+
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      const firstError = error.errors[0]
+      return {
+        success: false,
+        error: `Validation error: ${firstError.path.join('.')} - ${firstError.message}`
+      }
+    }
+
+    return {
+      success: false,
+      error: 'Unknown crossword validation error'
     }
   }
 }

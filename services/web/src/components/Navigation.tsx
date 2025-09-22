@@ -18,6 +18,7 @@ const navigationItems: NavigationItem[] = [
     label: 'КОНСТРУКТОРЫ',
     submenu: [
       { label: 'Филворды', href: '/filword' },
+      { label: 'Кроссворды', href: '/crossword' },
       { label: 'Тексты для чтения', href: '/reading-text' }
     ]
   },
@@ -72,6 +73,7 @@ export default function Navigation() {
                             <div className="font-medium">{subItem.label}</div>
                             <div className="text-xs text-gray-500 mt-1">
                               {subItem.label === 'Филворды' && 'Словесные головоломки'}
+                              {subItem.label === 'Кроссворды' && 'Классические кроссворды с определениями'}
                               {subItem.label === 'Тексты для чтения' && '12 типов упражнений для развития техники чтения'}
                             </div>
                           </Link>

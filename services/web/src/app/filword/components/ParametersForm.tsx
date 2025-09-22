@@ -93,15 +93,61 @@ export default function ParametersForm({
     onParamsChange(newParams)
   }
 
+  const handleAllowIntersectionsChange = (allowIntersections: boolean) => {
+    const newParams = { ...params, allowIntersections }
+    setParams(newParams)
+    onParamsChange(newParams)
+  }
+
+  const analyzeWordInput = (input: string) => {
+    const allWords = input.split(/[,\n]/).map(word => word.trim()).filter(w => w.length > 0)
+    const validWords = allWords.filter(word =>
+      word.length >= 3 &&
+      word.length <= 12 &&
+      /^[а-яё]+$/i.test(word)
+    )
+
+    const issues = []
+    const suggestions = []
+
+    // Проверка коротких слов
+    const shortWords = allWords.filter(word => word.length < 3)
+    if (shortWords.length > 0) {
+      issues.push(`Слишком короткие слова (< 3 букв): ${shortWords.slice(0, 3).join(', ')}${shortWords.length > 3 ? '...' : ''}`)
+    }
+
+    // Проверка длинных слов
+    const longWords = allWords.filter(word => word.length > 12)
+    if (longWords.length > 0) {
+      issues.push(`Слишком длинные слова (> 12 букв): ${longWords.slice(0, 3).join(', ')}${longWords.length > 3 ? '...' : ''}`)
+    }
+
+    // Проверка нелатинских символов
+    const nonCyrillicWords = allWords.filter(word => !/^[а-яё]+$/i.test(word) && word.length > 0)
+    if (nonCyrillicWords.length > 0) {
+      issues.push(`Недопустимые символы: ${nonCyrillicWords.slice(0, 3).join(', ')}${nonCyrillicWords.length > 3 ? '...' : ''}`)
+      suggestions.push('Используйте только русские буквы (кириллицу)')
+    }
+
+    // Предложения
+    if (validWords.length > 0 && validWords.length < 3) {
+      suggestions.push('Добавьте еще слова для лучшего филворда')
+    }
+
+    return {
+      totalWords: allWords.length,
+      validWords: validWords.length,
+      issues,
+      suggestions,
+      words: validWords.map(w => w.toLowerCase())
+    }
+  }
+
   const handleWordsFromInput = () => {
-    const words = wordInput
-      .split(/[,\n]/)
-      .map(word => word.trim().toLowerCase())
-      .filter(word => word.length >= 3 && word.length <= 12)
-      .filter(word => /^[а-яё]+$/i.test(word))
-    
-    if (words.length > 0) {
-      const newParams = { ...params, words }
+    const analysis = analyzeWordInput(wordInput)
+
+    if (analysis.validWords > 0) {
+      const newParams = { ...params, words: analysis.words }
       setParams(newParams)
       onParamsChange(newParams)
       setSelectedCategory(null)
@@ -331,6 +377,39 @@ export default function ParametersForm({
           )}
         </div>
 
+        {/* Расположение слов */}
+        <div className="card">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-lg">🔗</span>
+            <h3 className="text-lg font-medium text-gray-900">Расположение слов</h3>
+          </div>
+
+          <div className="space-y-3">
+            <label className="flex items-start gap-3 cursor-pointer p-3 rounded-lg border-2 transition-all hover:shadow-sm bg-white hover:border-gray-300">
+              <input
+                type="checkbox"
+                checked={params.allowIntersections}
+                onChange={(e) => handleAllowIntersectionsChange(e.target.checked)}
+                className="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              />
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="font-medium text-gray-900">Разрешить пересечения слов</span>
+                  <span className="text-sm text-blue-600 bg-blue-100 px-2 py-1 rounded-full">
+                    {params.allowIntersections ? 'Классический' : 'Упрощенный'}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-600 mt-1">
+                  {params.allowIntersections
+                    ? 'Слова могут пересекаться одинаковыми буквами (традиционный филворд)'
+                    : 'Слова размещаются отдельно без пересечений (легче для поиска)'
+                  }
+                </p>
+              </div>
+            </label>
+          </div>
+        </div>
+
         {/* Регистр текста */}
         <div className="card">
           <div className="flex items-center gap-2 mb-3">
@@ -426,7 +505,19 @@ export default function ParametersForm({
             <div className="relative">
               <textarea
                 value={wordInput}
-                onChange={(e) => setWordInput(e.target.value)}
+                onChange={(e) => {
+                  setWordInput(e.target.value)
+                  // Автоматически переключаемся на кастомные слова при вводе
+                  if (e.target.value.trim() && selectedCategory) {
+                    setSelectedCategory(null)
+                  }
+                }}
+                onFocus={() => {
+                  // Переключаемся на кастомные слова при фокусе
+                  if (selectedCategory) {
+                    setSelectedCategory(null)
+                  }
+                }}
                 placeholder="кот, собака, корова&#10;птица, рыба, заяц&#10;или каждое слово с новой строки..."
                 rows={3}
                 className="input text-sm resize-none"
@@ -436,11 +527,55 @@ export default function ParametersForm({
                 {wordInput.split(/[,\n]/).filter(w => w.trim()).length} слов
               </div>
             </div>
-            <div className="mt-1 text-xs text-gray-500 space-y-0.5">
-              <p>• Слова через запятую или с новой строки</p>
-              <p>• Только кириллица (русские буквы)</p>
-              <p>• Длина слова: от 3 до 12 символов</p>
-            </div>
+            {/* Умные подсказки */}
+            {wordInput.trim() ? (
+              (() => {
+                const analysis = analyzeWordInput(wordInput)
+                return (
+                  <div className="mt-2 space-y-2">
+                    {/* Статистика */}
+                    <div className="text-xs">
+                      <span className={analysis.validWords > 0 ? 'text-green-600' : 'text-gray-500'}>
+                        ✓ Валидных слов: {analysis.validWords}
+                      </span>
+                      {analysis.totalWords !== analysis.validWords && (
+                        <span className="text-orange-600 ml-3">
+                          ⚠ Всего слов: {analysis.totalWords}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Ошибки */}
+                    {analysis.issues.length > 0 && (
+                      <div className="space-y-1">
+                        {analysis.issues.map((issue, index) => (
+                          <div key={index} className="text-xs text-red-600 bg-red-50 px-2 py-1 rounded">
+                            ❌ {issue}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Предложения */}
+                    {analysis.suggestions.length > 0 && (
+                      <div className="space-y-1">
+                        {analysis.suggestions.map((suggestion, index) => (
+                          <div key={index} className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                            💡 {suggestion}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )
+              })()
+            ) : (
+              <div className="mt-1 text-xs text-gray-500 space-y-0.5">
+                <p>• Слова через запятую или с новой строки</p>
+                <p>• Только кириллица (русские буквы)</p>
+                <p>• Длина слова: от 3 до 12 символов</p>
+              </div>
+            )}
           </div>
         </div>
 
