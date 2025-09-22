@@ -303,7 +303,7 @@ function getCSS(fontSize: string = 'medium', fontFamily: string = 'sans-serif'):
     'sans-serif': '"Arial", "Helvetica", sans-serif',
     'mono': '"Courier New", Courier, monospace',
     'cursive': '"Comic Sans MS", cursive',
-    'propisi': '"Kalam", "Comic Sans MS", cursive'
+    'propisi': '"Propisi", "Kalam", "Comic Sans MS", cursive'
   }
 
   const cssSize = fontSizeMap[fontSize] || '14px'
@@ -312,6 +312,14 @@ function getCSS(fontSize: string = 'medium', fontFamily: string = 'sans-serif'):
   return `
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&family=Comfortaa:wght@300;400;700&display=swap');
+
+      @font-face {
+        font-family: 'Propisi';
+        src: url('/fonts/Propisi.TTF') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+        font-display: swap;
+      }
 
       body {
         font-family: ${cssFontFamily};

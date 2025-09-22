@@ -312,7 +312,7 @@ async function generateReadingTextPDF(params: ReadingTextParams): Promise<Buffer
             'sans-serif': '"Arial", "Helvetica", sans-serif',
             'mono': '"Courier New", Courier, monospace',
             'cursive': '"Comic Sans MS", cursive',
-            'propisi': '"Kalam", "Comic Sans MS", cursive'
+            'propisi': '"Propisi", "Kalam", "Comic Sans MS", cursive'
           }
           return fontFamilies[family] || '"Arial", "Helvetica", sans-serif'
         })
