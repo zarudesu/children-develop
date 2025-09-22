@@ -141,7 +141,7 @@ export const FONT_FAMILY_SETTINGS: Record<FontFamily, {
   'propisi': {
     name: 'Пропись',
     description: 'Рукописный шрифт для обучения письму',
-    cssFamily: '"Kalam", "Comic Sans MS", cursive',
+    cssFamily: '"Propisi", "Kalam", "Comic Sans MS", cursive',
     example: 'Абв'
   }
 }
