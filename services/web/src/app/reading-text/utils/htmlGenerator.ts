@@ -572,7 +572,7 @@ export function generateReadingTextHTML(params: ReadingTextParams): string {
 
   // Проверяем, массив ли textType для многостраничной генерации
   if (Array.isArray(params.textType)) {
-    return generateMultiPageHTML(params, typeNames)
+    return generateCSSBasedMultiPageHTML(params, typeNames)
   }
 
   // Однообразная генерация для одного типа
@@ -1086,4 +1086,305 @@ function getMultiPageCSS(fontSize: string = 'medium', fontFamily: string = 'sans
       }
     </style>
   `
+}
+
+// CSS-based многостраничная генерация - дает браузеру самому решать где делать page-break
+function generateCSSBasedMultiPageHTML(params: ReadingTextParams, typeNames: Record<string, string>): string {
+  const textTypes = params.textType as string[]
+  const title = params.title || 'Упражнения на технику чтения'
+
+  // Генерируем все упражнения подряд
+  const exercises = textTypes.map((textType, index) => {
+    const transformedText = transformText(params.inputText, textType, {
+      cutPercentage: params.cutPercentage,
+      endingLength: params.endingLength,
+      reversedWordCount: params.reversedWordCount,
+      extraLetterDensity: params.extraLetterDensity,
+      keepFirstLast: params.keepFirstLast,
+      mixedMode: params.mixedMode,
+      fontFamily: params.fontFamily,
+      fontSize: params.fontSize
+    })
+
+    const typeInfo = typeNames[textType] || textType
+    const pageNumber = index + 1
+    const isFirstPage = index === 0
+
+    return `
+    <div class="exercise-page">
+      <div class="page-header">
+        <h1 class="brand-title">СКОРОЧТЕНИЕ</h1>
+        <div class="page-number">${pageNumber}</div>
+      </div>
+
+      <div class="exercise-title">${typeInfo}</div>
+
+      ${isFirstPage ? `
+      <div class="source-text">
+        <div class="source-label">Прочитай исходный текст</div>
+        ${params.inputText}
+      </div>
+      ` : ''}
+
+      <div class="exercise-content">
+        ${transformedText}
+      </div>
+
+      <div class="page-footer">
+        <div class="footer-brand">
+          <div class="footer-logo">R</div>
+          <span>Развитие ребёнка</span>
+        </div>
+      </div>
+    </div>`
+  }).join('\n')
+
+  return `<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>${title}</title>
+  ${getCSSBasedStyles(params.fontSize, params.fontFamily)}
+</head>
+<body>
+  ${exercises}
+</body>
+</html>`
+}
+
+// CSS стили с автоматическим page-break
+function getCSSBasedStyles(fontSize: string = 'medium', fontFamily: string = 'sans-serif'): string {
+  // Адаптивный line-height в зависимости от размера шрифта
+  const getLineHeight = (size: string): string => {
+    switch(size) {
+      case 'super-huge':
+      case 'huge': return '1.2'      // Для огромных шрифтов - очень компактно
+      case 'extra-large':
+      case 'large': return '1.3'     // Для больших - компактно
+      case 'medium':
+      default: return '1.4'          // Для средних и маленьких - стандартно
+    }
+  }
+
+  // Мапинг размеров шрифтов
+  const fontSizeMap: Record<string, string> = {
+    'super-huge': '40px',
+    'huge': '32px',
+    'extra-large': '24px',
+    'large': '18px',
+    'medium': '14px',
+    'small': '12px',
+    'tiny': '10px'
+  }
+
+  // Мапинг шрифтов
+  const fontFamilyMap: Record<string, string> = {
+    'serif': '"Times New Roman", Times, serif',
+    'sans-serif': '"Arial", "Helvetica", sans-serif',
+    'mono': '"Courier New", Courier, monospace',
+    'cursive': '"Comic Sans MS", cursive',
+    'propisi': '"Propisi", "Kalam", "Comic Sans MS", cursive'
+  }
+
+  return `<style>
+    @import url('https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&family=Comfortaa:wght@300;400;700&display=swap');
+
+    @font-face {
+      font-family: 'Propisi';
+      src: url('file:///Users/zardes/Projects/childdev-cl/services/pdf/public/fonts/Propisi.TTF') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: ${fontFamilyMap[fontFamily] || fontFamilyMap['sans-serif']};
+      color: #000;
+      background: white;
+    }
+
+    /* Страница упражнения */
+    .exercise-page {
+      width: 210mm;
+      min-height: 297mm;
+      position: relative;
+      padding: 10mm;
+      page-break-after: always;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .exercise-page:last-child {
+      page-break-after: avoid;
+    }
+
+    /* Хедер */
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #333;
+    }
+
+    .brand-title {
+      font-size: 36px;
+      font-weight: bold;
+      color: #2c3e50;
+      letter-spacing: -1px;
+    }
+
+    .page-number {
+      font-size: 48px;
+      font-weight: 300;
+      color: #95a5a6;
+    }
+
+    /* Подзаголовок упражнения */
+    .exercise-title {
+      font-size: 18px;
+      color: #34495e;
+      margin-bottom: 10px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid #34495e;
+      font-weight: 500;
+    }
+
+    /* Исходный текст (только на первой странице) */
+    .source-text {
+      font-family: 'Arial', 'Helvetica', sans-serif !important;
+      font-size: 14px !important;
+      line-height: 1.6;
+      margin-bottom: 15px;
+      padding: 15px;
+      border: 2px solid #bdc3c7;
+      border-radius: 4px;
+      background: #ecf0f1;
+    }
+
+    .source-label {
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #34495e;
+    }
+
+    /* Контент упражнения */
+    .exercise-content {
+      font-size: ${fontSizeMap[fontSize] || '14px'};
+      line-height: ${getLineHeight(fontSize)};
+      flex-grow: 1;
+      padding: 15px;
+      border: 3px solid #333;
+      border-radius: 4px;
+      margin: 0;
+      box-sizing: border-box;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      word-break: break-all;
+
+      /* CSS для предотвращения переполнения */
+      max-height: none;
+      overflow: visible;
+    }
+
+    /* Футер */
+    .page-footer {
+      margin-top: auto;
+      padding-top: 10px;
+      border-top: 1px solid #bdc3c7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #7f8c8d;
+      font-size: 12px;
+    }
+
+    .footer-logo {
+      width: 24px;
+      height: 24px;
+      background: linear-gradient(135deg, #3498db, #2980b9);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    /* Специальные стили для упражнений */
+    .bottom-cut-pseudo {
+      position: relative;
+      display: inline-block;
+      overflow: hidden;
+    }
+
+    .bottom-cut-pseudo::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 40%;
+      background: white;
+      z-index: 1;
+    }
+
+    .top-cut-pseudo {
+      position: relative;
+      display: inline-block;
+      overflow: hidden;
+    }
+
+    .top-cut-pseudo::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 40%;
+      background: white;
+      z-index: 1;
+    }
+
+    .extra-letter {
+      color: #888;
+      font-weight: normal;
+    }
+
+    .mirror-text {
+      transform: scaleX(-1);
+      display: inline-block;
+    }
+
+    .merged-text {
+      word-break: break-all;
+      overflow-wrap: anywhere;
+      hyphens: none;
+    }
+
+    @media print {
+      body {
+        -webkit-print-color-adjust: exact;
+        color-adjust: exact;
+      }
+
+      .exercise-page {
+        page-break-inside: avoid;
+      }
+    }
+  </style>`
 }
