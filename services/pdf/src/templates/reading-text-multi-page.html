@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>{{title}}</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&family=Comfortaa:wght@300;400;700&display=swap');
+
+        @font-face {
+            font-family: 'Propisi';
+            src: url('file:///Users/zardes/Projects/childdev-cl/services/pdf/public/fonts/Propisi.TTF') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        /* Базовые стили */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', 'Helvetica', sans-serif;
+            color: #000;
+            background: white;
+            overflow: hidden;
+        }
+
+        /* Минимальный фон без заливки для экономии тонера */
+        .page-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: white;
+        }
+
+        /* Страница */
+        .page {
+            width: 210mm;
+            height: 297mm;
+            position: relative;
+            padding: 10mm;
+            page-break-after: always;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .page:last-child {
+            page-break-after: avoid;
+        }
+
+        /* Хедер */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #333;
+        }
+
+        .brand-title {
+            font-size: 36px;
+            font-weight: bold;
+            color: #2c3e50;
+            letter-spacing: -1px;
+        }
+
+        .page-number {
+            font-size: 48px;
+            font-weight: 300;
+            color: #95a5a6;
+        }
+
+        /* Подзаголовок упражнения */
+        .exercise-title {
+            font-size: 18px;
+            color: #34495e;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #34495e;
+            font-weight: 500;
+        }
+
+        /* Исходный текст (всегда стандартный) */
+        .source-text {
+            font-family: 'Arial', 'Helvetica', sans-serif !important;
+            font-size: 14px !important;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            padding: 15px;
+            border: 2px solid #bdc3c7;
+            border-radius: 4px;
+            background: #ecf0f1;
+        }
+
+        .source-label {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #34495e;
+        }
+
+        /* Упражнение */
+        .exercise-text {
+            font-family: {{fontFamily fontFamily}};
+            font-size: {{fontSize fontSize}};
+            line-height: 1.4;
+            flex-grow: 1;
+            padding: 15px;
+            border: 3px solid #333;
+            border-radius: 4px;
+            margin: 0;
+            box-sizing: border-box;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-all;
+        }
+
+        /* Футер */
+        .footer {
+            margin-top: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding-top: 10px;
+            border-top: 1px solid #bdc3c7;
+        }
+
+        .footer-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #7f8c8d;
+            font-size: 12px;
+        }
+
+        .footer-logo {
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        /* Специальные стили для упражнений */
+        .bottom-cut-pseudo {
+            position: relative;
+            display: inline-block;
+            overflow: hidden;
+        }
+
+        .bottom-cut-pseudo::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 40%;
+            background: white;
+            z-index: 1;
+        }
+
+        .top-cut-pseudo {
+            position: relative;
+            display: inline-block;
+            overflow: hidden;
+        }
+
+        .top-cut-pseudo::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 40%;
+            background: white;
+            z-index: 1;
+        }
+
+        /* Специальное правило для слитного текста - добавляет возможность переноса после каждой буквы */
+        .merged-text {
+            word-break: break-all;
+            overflow-wrap: anywhere;
+            hyphens: none;
+        }
+
+        @media print {
+            body {
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+<body>
+    {{#each pages}}
+    <div class="page">
+        <div class="page-background"></div>
+
+        <div class="header">
+            <div class="brand-title">СКОРОЧТЕНИЕ</div>
+            <div class="page-number">{{@index_plus_one}}</div>
+        </div>
+
+        <div class="exercise-title">{{this.title}}</div>
+
+        {{#if @first}}
+        <div class="source-text">
+            <div class="source-label">Прочитай исходный текст</div>
+            {{this.sourceText}}
+        </div>
+        {{/if}}
+
+        <div class="exercise-text">
+            {{{this.content}}}
+        </div>
+
+        <div class="footer">
+            <div class="footer-brand">
+                <div class="footer-logo">R</div>
+                <span>Развитие ребёнка</span>
+            </div>
+        </div>
+    </div>
+    {{/each}}
+</body>
+</html>
