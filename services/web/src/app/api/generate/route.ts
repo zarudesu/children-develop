@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { validateFilwordParams } from '../../filword/utils/validation'
 import { validateReadingTextParams } from '../../reading-text/utils/validation'
+import { validateCrosswordParams } from '../../crossword/utils/validation'
 import { generateReadingTextHTML } from '../../reading-text/utils/htmlGenerator'
+import { generateCrosswordHTML } from '../../crossword/utils/htmlGenerator'
 import { FilwordParams } from '../../filword/types'
 import { ReadingTextParams } from '../../reading-text/types'
 import { CrosswordParams } from '../../crossword/types'
@@ -32,7 +34,10 @@ export async function POST(request: NextRequest) {
         : { success: false, error: validationData.errors?.join(', ') || 'Ошибка валидации' }
     } else if ('type' in body && body.type === 'crossword') {
       // Новый API для crossword
-      validationResult = { success: true } // Простая валидация для crossword
+      const validationData = validateCrosswordParams(body.params)
+      validationResult = validationData.success
+        ? { success: true }
+        : { success: false, error: validationData.errors?.join(', ') || 'Ошибка валидации' }
     } else if ('type' in body && body.type === 'filword') {
       // Новый API для filword
       validationResult = validateFilwordParams(body.params)
@@ -100,20 +105,30 @@ export async function POST(request: NextRequest) {
       })
 
     } else if ('type' in body && body.type === 'crossword') {
-      // Для crossword используем прямую передачу в PDF сервис
-      const pdfResponse = await fetch(`${PDF_SERVICE_URL}/generate`, {
+      // Для crossword используем новую архитектуру HTML->PDF
+
+      try {
+        console.log('🎯 Crossword generation started')
+
+        // 1. Генерируем HTML в веб-сервисе (один источник истины!)
+        const html = await generateCrosswordHTML(body.params as CrosswordParams)
+
+        console.log('✅ HTML generated, length:', html.length)
+
+      // 2. Отправляем HTML в новый эндпоинт для генерации PDF
+      const pdfResponse = await fetch(`${PDF_SERVICE_URL}/generate-from-html`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(body),
+        body: JSON.stringify({ html }),
       })
 
       if (!pdfResponse.ok) {
         const errorText = await pdfResponse.text()
-        console.error('PDF Service error:', errorText)
+        console.error('PDF from HTML error:', errorText)
         return NextResponse.json(
-          { message: 'Ошибка генерации кроссворда. Попробуйте позже.' },
+          { message: 'Ошибка генерации кроссворда из HTML' },
           { status: pdfResponse.status }
         )
       }
@@ -144,6 +159,14 @@ export async function POST(request: NextRequest) {
           'X-Download-Metadata': JSON.stringify({ gridSize: params.gridSize, wordsCount: params.words.length }),
         },
       })
+
+      } catch (error) {
+        console.error('❌ Crossword error:', error)
+        return NextResponse.json(
+          { message: `Ошибка генерации кроссворда: ${error.message}` },
+          { status: 500 }
+        )
+      }
 
     } else {
       // Для filword пока оставляем старую архитектуру

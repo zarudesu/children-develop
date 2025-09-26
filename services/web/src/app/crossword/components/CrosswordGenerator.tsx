@@ -144,15 +144,12 @@ export default function CrosswordGenerator({
 
     setPreviewLoading(true)
     try {
-      const response = await fetch('/api/debug-html', {
+      const response = await fetch('/api/crossword/debug-html', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          type: 'crossword',
-          params
-        })
+        body: JSON.stringify(params)
       })
 
       if (!response.ok) {
