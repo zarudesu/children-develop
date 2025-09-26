@@ -16,33 +16,18 @@ export default function HomePage() {
             
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6">
               <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Генератор образовательных
+                Конструкторы развивающих
               </span>
               <br />
               <span className="text-gray-900">заданий</span>
             </h1>
             
             <p className="text-xl sm:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              Создавайте профессиональные дидактические материалы 
-              <span className="font-semibold text-blue-600">за 2 минуты</span>. 
+              Создавайте дидактические материалы
+              <span className="font-semibold text-blue-600">за 2 минуты</span>.
               Готовые PDF с заданиями и ответами.
             </p>
             
-            {/* Quick stats */}
-            <div className="flex flex-wrap justify-center gap-8 mb-12 text-sm text-gray-600">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span>Бесплатно</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <span>Без регистрации</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                <span>Мгновенно</span>
-              </div>
-            </div>
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -83,10 +68,10 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Наши генераторы
+              Наши конструкторы (генераторы)
             </h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Выберите подходящий инструмент для создания образовательных материалов
+              Выберите подходящий инструмент
             </p>
           </div>
 
@@ -110,14 +95,14 @@ export default function HomePage() {
             {/* Тексты для чтения */}
             <GeneratorCard
               title="Тексты для чтения"
-              description="12 типов трансформаций текста для развития техники чтения, скорочтения и коррекции дислексии."
+              description="Трансформации текста для развития техники чтения и скорочтения."
               icon="📖"
               href="/reading-text"
               difficulty={['Легко', 'Средне', 'Сложно']}
-              ageGroups={['3-5 лет', '6-8 лет', '9-12 лет', '13+ лет']}
+              ageGroups={['6-8 лет', '9-12 лет', '13+ лет']}
               features={[
-                'Обрезание букв (верх/низ)',
-                'Анаграммы с настройками',
+                'Недописанные буквы',
+                'Перепутанные слова',
                 'Зеркальный текст',
                 'Смешанные типы упражнений'
               ]}
@@ -152,7 +137,7 @@ export default function HomePage() {
               Почему выбирают ChildDev?
             </h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Мы создали платформу, которая экономит время учителей и делает обучение интереснее
+              Создаем дидактические материалы для психологов, дефектологов, логопедов, учителей и родителей
             </p>
           </div>
 
@@ -171,7 +156,7 @@ export default function HomePage() {
               <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-r from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all transform group-hover:scale-110">
                 <span className="text-white text-2xl">🎨</span>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Профессионально</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">Качественно</h3>
               <p className="text-gray-600">
                 Красивый дизайн, оптимизированный для печати. Крупные шрифты, четкие линии.
               </p>
@@ -191,9 +176,9 @@ export default function HomePage() {
               <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-r from-red-400 to-red-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all transform group-hover:scale-110">
                 <span className="text-white text-2xl">🆓</span>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Бесплатно</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">Доступно</h3>
               <p className="text-gray-600">
-                Полный доступ без регистрации. Создавайте сколько угодно заданий.
+                Простой интерфейс. Создавайте материалы без лишних сложностей.
               </p>
             </div>
           </div>
@@ -207,7 +192,7 @@ export default function HomePage() {
             Начните создавать прямо сейчас
           </h2>
           <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Выберите генератор и создайте первое задание за 2 минуты. Никакой регистрации или оплаты.
+            Выберите конструктор и создайте первое задание за 2 минуты.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
