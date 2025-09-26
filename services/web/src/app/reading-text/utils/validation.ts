@@ -3,20 +3,36 @@ import { ReadingTextType, FontSize, TextCase } from '../types'
 
 // Схема для параметров конструктора текстов
 export const readingTextParamsSchema = z.object({
-  textType: z.enum([
-    'normal',
-    'bottom-cut',
-    'top-cut',
-    'missing-endings',
-    'missing-vowels',
-    'partial-reversed',
-    'scrambled-words',
-    'merged-text',
-    'extra-letters',
-    'mirror-text',
-    'mixed-types',
-    'word-ladder'
-  ] as const),
+  textType: z.union([
+    z.enum([
+      'normal',
+      'bottom-cut',
+      'top-cut',
+      'missing-endings',
+      'missing-vowels',
+      'partial-reversed',
+      'scrambled-words',
+      'merged-text',
+      'extra-letters',
+      'mirror-text',
+      'mixed-types',
+      'word-ladder'
+    ] as const),
+    z.array(z.enum([
+      'normal',
+      'bottom-cut',
+      'top-cut',
+      'missing-endings',
+      'missing-vowels',
+      'partial-reversed',
+      'scrambled-words',
+      'merged-text',
+      'extra-letters',
+      'mirror-text',
+      'mixed-types',
+      'word-ladder'
+    ] as const)).min(1).max(12)
+  ]),
 
   inputText: z.string()
     .min(10, 'Текст должен содержать минимум 10 символов')
@@ -30,7 +46,7 @@ export const readingTextParamsSchema = z.object({
       'Текст должен содержать кириллические символы'
     ),
 
-  fontSize: z.enum(['huge', 'extra-large', 'large', 'medium', 'small', 'tiny'] as const),
+  fontSize: z.enum(['super-huge', 'huge', 'extra-large', 'large', 'medium'] as const),
   fontFamily: z.enum(['serif', 'sans-serif', 'mono', 'cursive', 'propisi'] as const),
   textCase: z.enum(['upper', 'lower', 'mixed'] as const),
 
@@ -83,7 +99,7 @@ export function countWords(text: string): number {
 // Проверка сложности текста для выбранного типа
 export function validateTextComplexity(
   text: string,
-  textType: ReadingTextType
+  textType: ReadingTextType | ReadingTextType[]
 ): { valid: boolean; warnings: string[] } {
   const words = text.trim().split(/\s+/)
   const warnings: string[] = []
@@ -97,8 +113,12 @@ export function validateTextComplexity(
     warnings.push('Слишком длинный текст может быть сложным для обработки')
   }
 
+  // Если массив типов, проверяем каждый
+  const typesToCheck = Array.isArray(textType) ? textType : [textType]
+
   // Специфичные проверки для разных типов
-  switch (textType) {
+  for (const type of typesToCheck) {
+    switch (type) {
     case 'scrambled-words':
       const longWords = words.filter(word => word.length > 8)
       if (longWords.length > words.length * 0.3) {
@@ -106,11 +126,6 @@ export function validateTextComplexity(
       }
       break
 
-    case 'word-ladder':
-      if (words.length > 20) {
-        warnings.push('Для лесенки слов рекомендуется использовать не более 20 слов')
-      }
-      break
 
     case 'merged-text':
       if (text.length > 200) {
@@ -127,6 +142,7 @@ export function validateTextComplexity(
         warnings.push('В тексте есть слова с малым количеством гласных - они могут быть слишком сложными')
       }
       break
+    }
   }
 
   return {

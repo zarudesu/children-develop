@@ -4,7 +4,13 @@ import { useEffect, useState } from 'react'
 import { statisticsService, type DownloadStats } from '../app/utils/statistics'
 
 export function FooterStats() {
-  const [stats, setStats] = useState<DownloadStats>({ total: 0, filword: 0, readingText: 0, crossword: 0 })
+  const [stats, setStats] = useState<DownloadStats>({
+    total: 0,
+    filword: 0,
+    readingText: 0,
+    crossword: 0,
+    lastUpdate: new Date().toISOString()
+  })
 
   useEffect(() => {
     setStats(statisticsService.getStats())

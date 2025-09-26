@@ -53,8 +53,20 @@ export default function ReadingTextPage() {
         'word-ladder': 'лесенка-слов'
       }
 
-      const typeName = typeNames[params.textType] || params.textType
-      const fileName = `текст-для-чтения-${typeName}-${Date.now()}.pdf`
+      // Генерируем имя файла в зависимости от количества типов
+      let fileName: string
+
+      if (Array.isArray(params.textType)) {
+        if (params.textType.length === 1) {
+          const typeName = typeNames[params.textType[0]] || params.textType[0]
+          fileName = `текст-для-чтения-${typeName}-${Date.now()}.pdf`
+        } else {
+          fileName = `текст-для-чтения-многостраничный-${params.textType.length}стр-${Date.now()}.pdf`
+        }
+      } else {
+        const typeName = typeNames[params.textType] || params.textType
+        fileName = `текст-для-чтения-${typeName}-${Date.now()}.pdf`
+      }
 
       link.download = fileName
       document.body.appendChild(link)

@@ -21,8 +21,15 @@ export default function ReadingTextGenerator({
   onGenerate,
   loading = false
 }: ReadingTextGeneratorProps) {
+  const [selectedTypes, setSelectedTypes] = useState<ReadingTextType[]>(['normal'])
+  const [collapsed, setCollapsed] = useState({
+    textTypes: false,
+    typography: true, // Свернуто по умолчанию для лучшего UX
+    advanced: true,
+    formatting: true
+  })
   const [params, setParams] = useState<ReadingTextParams>({
-    textType: 'normal',
+    textType: ['normal'], // Изменено на массив
     inputText: 'Боря плыл в лодке. Над рекой летали птицы. Солнце ярко светило.',
     fontSize: 'medium',
     fontFamily: 'sans-serif',
@@ -47,6 +54,44 @@ export default function ReadingTextGenerator({
     setParams(prev => ({ ...prev, [key]: value }))
   }
 
+  const toggleSection = (section: keyof typeof collapsed) => {
+    setCollapsed(prev => ({ ...prev, [section]: !prev[section] }))
+  }
+
+  const handleTypeToggle = (type: ReadingTextType) => {
+    setSelectedTypes(prev => {
+      let newTypes: ReadingTextType[]
+
+      if (prev.includes(type)) {
+        // Убираем тип из выбранных
+        newTypes = prev.filter(t => t !== type)
+      } else {
+        // Добавляем тип к выбранным
+        newTypes = [...prev, type]
+
+        // Если выбрали не-normal тип, и normal был в списке, убираем normal
+        if (type !== 'normal' && prev.includes('normal')) {
+          newTypes = newTypes.filter(t => t !== 'normal')
+        }
+
+        // Если выбрали normal, убираем все остальные типы
+        if (type === 'normal') {
+          newTypes = ['normal']
+        }
+      }
+
+      // Если список пустой, добавляем 'normal'
+      const finalTypes = newTypes.length === 0 ? ['normal'] : newTypes
+
+      setParams(prevParams => ({
+        ...prevParams,
+        textType: finalTypes as ReadingTextType[]
+      }))
+
+      return finalTypes as ReadingTextType[]
+    })
+  }
+
   const handleGenerate = () => {
     // Валидация перед отправкой
     const wordCount = params.inputText.trim().split(/\s+/).filter(w => w.length > 0).length
@@ -65,6 +110,13 @@ export default function ReadingTextGenerator({
       alert('Текст должен содержать кириллические символы')
       return
     }
+
+    // Отладочный вывод
+    console.log('Генерация PDF с параметрами:', {
+      textType: params.textType,
+      selectedTypes,
+      isMultiPage: Array.isArray(params.textType) && params.textType.length > 1
+    })
 
     if (onGenerate) {
       onGenerate(params)
@@ -122,7 +174,9 @@ export default function ReadingTextGenerator({
     }
   }
 
-  const typeInfo = TEXT_TYPE_DESCRIPTIONS[params.textType]
+  // Для отображения информации берем первый выбранный тип
+  const firstType = Array.isArray(params.textType) ? params.textType[0] : params.textType
+  const typeInfo = TEXT_TYPE_DESCRIPTIONS[firstType || 'normal']
 
   // Проверки для визуальной валидации
   const wordCount = params.inputText.trim().split(/\s+/).filter(w => w.length > 0).length
@@ -145,153 +199,346 @@ export default function ReadingTextGenerator({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Левая колонка - настройки */}
         <div className="space-y-6">
-          {/* Тип задания */}
+          {/* Типы заданий - Компактный интерфейс */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Тип задания
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              Типы заданий
+              <span className="text-xs text-gray-500 ml-2">
+                (выберите один или несколько для создания многостраничного PDF)
+              </span>
             </label>
-            <select
-              value={params.textType}
-              onChange={(e) => handleParamChange('textType', e.target.value as ReadingTextType)}
-              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+
+            {/* Компактный выбор типов */}
+            <div className="space-y-3">
+              {/* Быстрый выбор */}
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(TEXT_TYPE_DESCRIPTIONS)
+                  .sort(([, a], [, b]) => {
+                    const difficultyOrder = { easy: 1, medium: 2, hard: 3 }
+                    return difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty]
+                  })
+                  .map(([type, info]) => {
+                    const isSelected = selectedTypes.includes(type as ReadingTextType)
+                    const difficultyColor = {
+                      easy: 'border-green-300 hover:border-green-400 text-green-800',
+                      medium: 'border-yellow-300 hover:border-yellow-400 text-yellow-800',
+                      hard: 'border-red-300 hover:border-red-400 text-red-800'
+                    }[info.difficulty]
+
+                    return (
+                      <div key={type} className="relative">
+                        <label className={`
+                          inline-flex items-center px-3 py-2 text-xs font-medium border rounded-full cursor-pointer transition-all
+                          ${isSelected
+                            ? 'bg-blue-100 border-blue-300 text-blue-800 shadow-sm'
+                            : `bg-white ${difficultyColor} hover:shadow-sm`
+                          }
+                        `}>
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => handleTypeToggle(type as ReadingTextType)}
+                            className="sr-only"
+                          />
+                          <span className={`w-2 h-2 rounded-full mr-2 ${
+                            info.difficulty === 'easy' ? 'bg-green-400' :
+                            info.difficulty === 'medium' ? 'bg-yellow-400' : 'bg-red-400'
+                          }`}></span>
+                          {info.name}
+                          {isSelected && <span className="ml-1">✓</span>}
+                        </label>
+                      </div>
+                    )
+                  })}
+              </div>
+
+              {/* Выбранные типы с параметрами */}
+              {selectedTypes.length > 0 && selectedTypes.some(type => type !== 'normal') && (
+                <div className="mt-4 p-4 bg-gray-50 rounded-lg border">
+                  <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center">
+                    ⚙️ Настройки выбранных типов
+                    <span className="ml-2 text-xs text-gray-500">
+                      ({selectedTypes.length} тип{selectedTypes.length > 1 ? 'а' : ''})
+                    </span>
+                  </h4>
+
+                  <div className="space-y-3">
+                    {selectedTypes.filter(type => type !== 'normal').map(type => (
+                      <div key={type} className="bg-white p-3 rounded-md border border-gray-200">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-medium text-gray-800">
+                            {TEXT_TYPE_DESCRIPTIONS[type].name}
+                          </span>
+                          <button
+                            onClick={() => handleTypeToggle(type)}
+                            className="text-xs text-red-600 hover:text-red-800"
+                          >
+                            Убрать
+                          </button>
+                        </div>
+
+                        {/* Параметры для каждого типа */}
+                        {(type === 'bottom-cut' || type === 'top-cut') && (
+                          <div className="flex items-center space-x-3">
+                            <label className="text-xs text-gray-600">Обрезание:</label>
+                            <input
+                              type="range"
+                              min="20"
+                              max="70"
+                              value={params.cutPercentage || 40}
+                              onChange={(e) => handleParamChange('cutPercentage', parseInt(e.target.value))}
+                              className="flex-1 h-1 bg-gray-200 rounded-lg slider"
+                            />
+                            <span className="text-xs text-gray-700 min-w-[3rem]">
+                              {params.cutPercentage || 40}%
+                            </span>
+                          </div>
+                        )}
+
+                        {type === 'missing-endings' && (
+                          <div className="flex items-center space-x-3">
+                            <label className="text-xs text-gray-600">Букв убрать:</label>
+                            <div className="flex space-x-1">
+                              {[1, 2, 3].map(length => (
+                                <button
+                                  key={length}
+                                  onClick={() => handleParamChange('endingLength', length)}
+                                  className={`w-8 h-8 text-xs border rounded ${
+                                    params.endingLength === length
+                                      ? 'bg-blue-500 text-white border-blue-500'
+                                      : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
+                                  }`}
+                                >
+                                  {length}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {type === 'partial-reversed' && (
+                          <div className="flex items-center space-x-3">
+                            <label className="text-xs text-gray-600">Перевернуть слов:</label>
+                            <input
+                              type="number"
+                              min="1"
+                              max="10"
+                              value={params.reversedWordCount || 2}
+                              onChange={(e) => handleParamChange('reversedWordCount', parseInt(e.target.value))}
+                              className="w-16 px-2 py-1 text-xs border border-gray-300 rounded"
+                            />
+                          </div>
+                        )}
+
+                        {type === 'extra-letters' && (
+                          <div className="flex items-center space-x-3">
+                            <label className="text-xs text-gray-600">Плотность:</label>
+                            <input
+                              type="range"
+                              min="10"
+                              max="50"
+                              value={params.extraLetterDensity || 30}
+                              onChange={(e) => handleParamChange('extraLetterDensity', parseInt(e.target.value))}
+                              className="flex-1 h-1 bg-gray-200 rounded-lg slider"
+                            />
+                            <span className="text-xs text-gray-700 min-w-[3rem]">
+                              {params.extraLetterDensity || 30}%
+                            </span>
+                          </div>
+                        )}
+
+                        {type === 'scrambled-words' && (
+                          <div className="space-y-2">
+                            <label className="text-xs text-gray-600">Режим анаграмм:</label>
+                            <div className="space-y-1">
+                              <label className="flex items-center">
+                                <input
+                                  type="radio"
+                                  name={`scrambleMode-${type}`}
+                                  checked={params.keepFirstLast === true}
+                                  onChange={() => handleParamChange('keepFirstLast', true)}
+                                  className="mr-2 text-blue-600 focus:ring-blue-500"
+                                />
+                                <span className="text-xs text-gray-700">
+                                  Сохранять первую и последнюю буквы
+                                </span>
+                              </label>
+                              <label className="flex items-center">
+                                <input
+                                  type="radio"
+                                  name={`scrambleMode-${type}`}
+                                  checked={params.keepFirstLast === false}
+                                  onChange={() => handleParamChange('keepFirstLast', false)}
+                                  className="mr-2 text-blue-600 focus:ring-blue-500"
+                                />
+                                <span className="text-xs text-gray-700">
+                                  Перемешивать все буквы
+                                </span>
+                              </label>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Суммарная информация */}
+              {selectedTypes.length > 0 && (
+                <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <div className="text-sm text-blue-800">
+                    <span className="font-medium">Будет создано:</span> {' '}
+                    {selectedTypes.length === 1
+                      ? '1 страница'
+                      : `${selectedTypes.length} страницы (многостраничный PDF)`
+                    }
+                    {selectedTypes.length > 1 && (
+                      <span className="text-xs block mt-1 text-blue-600">
+                        Первая страница включает исходный текст для сравнения
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Типографика - Компактная версия */}
+          <div className="border rounded-lg">
+            <button
+              onClick={() => toggleSection('typography')}
+              className="w-full p-3 text-left flex items-center justify-between bg-gray-50 hover:bg-gray-100 rounded-t-lg"
             >
-              {Object.entries(TEXT_TYPE_DESCRIPTIONS).map(([type, info]) => (
-                <option key={type} value={type}>
-                  {info.name}
-                </option>
-              ))}
-            </select>
-
-            {/* Описание выбранного типа */}
-            <div className="mt-2 p-3 bg-blue-50 rounded-md">
-              <div className="flex items-center justify-between mb-1">
-                <span className="font-medium text-blue-800">{typeInfo.name}</span>
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                  typeInfo.difficulty === 'easy' ? 'bg-green-100 text-green-800' :
-                  typeInfo.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                  'bg-red-100 text-red-800'
-                }`}>
-                  {typeInfo.difficulty === 'easy' ? 'Легко' :
-                   typeInfo.difficulty === 'medium' ? 'Средне' : 'Сложно'}
-                </span>
+              <div className="flex items-center space-x-3">
+                <span>🎨</span>
+                <div>
+                  <h3 className="font-medium text-gray-900">Шрифт и стиль</h3>
+                  <p className="text-xs text-gray-500">
+                    {FONT_SIZE_SETTINGS[params.fontSize]?.name} • {FONT_FAMILY_SETTINGS[params.fontFamily]?.name}
+                  </p>
+                </div>
               </div>
-              <p className="text-sm text-blue-600 mb-1">{typeInfo.description}</p>
-              <p className="text-xs text-blue-500">Цель: {typeInfo.purpose}</p>
-            </div>
-          </div>
+              <span className={`transform transition-transform ${collapsed.typography ? 'rotate-0' : 'rotate-180'}`}>
+                ▼
+              </span>
+            </button>
 
-          {/* Размер шрифта */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Размер шрифта
-            </label>
-            <div className="grid grid-cols-2 gap-2">
-              {Object.entries(FONT_SIZE_SETTINGS).map(([size, info]) => (
-                <button
-                  key={size}
-                  onClick={() => handleParamChange('fontSize', size as FontSize)}
-                  className={`p-3 text-left border rounded-lg transition-all transform hover:scale-105 ${
-                    params.fontSize === size
-                      ? 'bg-blue-500 text-white border-blue-500 shadow-lg'
-                      : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50 hover:border-gray-400'
-                  }`}
-                >
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <div className="font-medium">{info.name}</div>
-                      <div className="text-xs opacity-75">{info.description}</div>
-                    </div>
-                    <div className={`text-sm font-mono px-2 py-1 rounded ${
-                      params.fontSize === size
-                        ? 'bg-blue-400 text-white'
-                        : 'bg-gray-100 text-gray-600'
-                    }`}>
-                      {info.cssSize}
-                    </div>
+            {!collapsed.typography && (
+              <div className="p-4 space-y-4">
+                {/* Размер шрифта - компактные кнопки */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Размер шрифта
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {Object.entries(FONT_SIZE_SETTINGS).map(([size, info]) => (
+                      <button
+                        key={size}
+                        onClick={() => handleParamChange('fontSize', size as FontSize)}
+                        className={`px-3 py-2 text-xs border rounded-full transition-all ${
+                          params.fontSize === size
+                            ? 'bg-blue-500 text-white border-blue-500 shadow-sm'
+                            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        {info.name}
+                      </button>
+                    ))}
                   </div>
-                </button>
-              ))}
-            </div>
+                </div>
 
-            {/* Превью размера шрифта и семейства */}
-            <div className="mt-4 p-4 bg-gray-50 rounded-lg border">
-              <div className="text-xs text-gray-600 mb-2">
-                Превью: {FONT_SIZE_SETTINGS[params.fontSize].name} + {FONT_FAMILY_SETTINGS[params.fontFamily].name}
-              </div>
-              <div
-                className="text-gray-800 p-2 bg-white rounded border-2 border-dashed border-gray-300"
-                style={{
-                  fontSize: FONT_SIZE_SETTINGS[params.fontSize].cssSize,
-                  lineHeight: FONT_SIZE_SETTINGS[params.fontSize].lineHeight,
-                  fontFamily: FONT_FAMILY_SETTINGS[params.fontFamily].cssFamily,
-                  fontDisplay: 'swap'
-                }}
-              >
-                Пример текста для чтения: Солнце ярко светило над зеленым лугом.
-              </div>
-              <div className="text-xs text-gray-500 mt-1">
-                CSS: font-family: {FONT_FAMILY_SETTINGS[params.fontFamily].cssFamily}; font-size: {FONT_SIZE_SETTINGS[params.fontSize].cssSize};
-              </div>
-            </div>
-          </div>
+                {/* Семейство шрифтов - выпадающий список */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Тип шрифта
+                  </label>
+                  <select
+                    value={params.fontFamily}
+                    onChange={(e) => handleParamChange('fontFamily', e.target.value as FontFamily)}
+                    className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                  >
+                    {Object.entries(FONT_FAMILY_SETTINGS).map(([family, info]) => (
+                      <option key={family} value={family}>
+                        {info.name} - {info.description}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-          {/* Семейство шрифтов */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Тип шрифта
-            </label>
-            <div className="space-y-2">
-              {Object.entries(FONT_FAMILY_SETTINGS).map(([family, info]) => (
-                <button
-                  key={family}
-                  onClick={() => handleParamChange('fontFamily', family as FontFamily)}
-                  className={`w-full p-3 text-left border rounded-lg transition-all transform hover:scale-105 ${
-                    params.fontFamily === family
-                      ? 'bg-purple-500 text-white border-purple-500 shadow-lg'
-                      : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50 hover:border-gray-400'
-                  }`}
-                >
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <div className="font-medium">{info.name}</div>
-                      <div className="text-xs opacity-75">{info.description}</div>
-                    </div>
-                    <div
-                      className="text-xl"
-                      style={{ fontFamily: info.cssFamily }}
-                    >
-                      {info.example}
-                    </div>
+                {/* Регистр букв */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Регистр букв
+                  </label>
+                  <div className="flex gap-2">
+                    {[
+                      { value: 'upper', label: 'ЗАГЛАВНЫЕ' },
+                      { value: 'lower', label: 'строчные' },
+                      { value: 'mixed', label: 'Смешанный' }
+                    ].map(({ value, label }) => (
+                      <button
+                        key={value}
+                        onClick={() => handleParamChange('textCase', value as TextCase)}
+                        className={`px-3 py-2 text-xs border rounded transition-all ${
+                          params.textCase === value
+                            ? 'bg-blue-500 text-white border-blue-500'
+                            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    ))}
                   </div>
-                </button>
-              ))}
-            </div>
-          </div>
+                </div>
 
-          {/* Регистр текста */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Регистр букв
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { value: 'upper', label: 'ЗАГЛАВНЫЕ' },
-                { value: 'lower', label: 'строчные' },
-                { value: 'mixed', label: 'Смешанный' }
-              ].map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => handleParamChange('textCase', option.value as TextCase)}
-                  className={`p-2 text-center border rounded-md transition-colors ${
-                    params.textCase === option.value
-                      ? 'bg-blue-500 text-white border-blue-500'
-                      : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                  }`}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
+                {/* Регистр текста */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Регистр букв
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { value: 'upper', label: 'ЗАГЛАВНЫЕ' },
+                      { value: 'lower', label: 'строчные' },
+                      { value: 'mixed', label: 'Смешанный' }
+                    ].map((option) => (
+                      <button
+                        key={option.value}
+                        onClick={() => handleParamChange('textCase', option.value as TextCase)}
+                        className={`p-2 text-center border rounded-md transition-colors ${
+                          params.textCase === option.value
+                            ? 'bg-blue-500 text-white border-blue-500'
+                            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Превью типографики */}
+                <div className="p-4 bg-gray-50 rounded-lg border">
+                  <div className="text-xs text-gray-600 mb-2">
+                    Превью: {FONT_SIZE_SETTINGS[params.fontSize].name} + {FONT_FAMILY_SETTINGS[params.fontFamily].name}
+                  </div>
+                  <div
+                    className="text-gray-800 p-2 bg-white rounded border-2 border-dashed border-gray-300"
+                    style={{
+                      fontSize: FONT_SIZE_SETTINGS[params.fontSize].cssSize,
+                      lineHeight: FONT_SIZE_SETTINGS[params.fontSize].lineHeight,
+                      fontFamily: FONT_FAMILY_SETTINGS[params.fontFamily].cssFamily
+                    }}
+                  >
+                    Пример текста для чтения: Солнце ярко светило над зеленым лугом.
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    CSS: font-family: {FONT_FAMILY_SETTINGS[params.fontFamily].cssFamily}; font-size: {FONT_SIZE_SETTINGS[params.fontSize].cssSize};
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Дополнительные настройки для конкретных типов */}
@@ -445,59 +692,87 @@ export default function ReadingTextGenerator({
             </div>
           ) : null}
 
-          {/* Форматирование */}
-          <div className="space-y-3">
-            <h3 className="font-medium text-gray-700">Форматирование</h3>
+          {/* Форматирование - Компактная версия */}
+          <div className="border rounded-lg">
+            <button
+              onClick={() => toggleSection('formatting')}
+              className="w-full p-3 text-left flex items-center justify-between bg-gray-50 hover:bg-gray-100 rounded-t-lg"
+            >
+              <div className="flex items-center space-x-3">
+                <span>📝</span>
+                <div>
+                  <h3 className="font-medium text-gray-900">Форматирование</h3>
+                  <p className="text-xs text-gray-500">
+                    {params.hasTitle ? 'С заголовком' : 'Без заголовка'} •
+                    {params.pageNumbers ? ' С номерами' : ' Без номеров'}
+                  </p>
+                </div>
+              </div>
+              <span className={`transform transition-transform ${collapsed.formatting ? 'rotate-0' : 'rotate-180'}`}>
+                ▼
+              </span>
+            </button>
 
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                checked={params.hasTitle}
-                onChange={(e) => handleParamChange('hasTitle', e.target.checked)}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              />
-              <span className="ml-2 text-sm text-gray-700">Добавить заголовок</span>
-            </label>
+            {!collapsed.formatting && (
+              <div className="p-4 space-y-3">
+                {/* Заголовок */}
+                <div>
+                  <label className="flex items-center mb-2">
+                    <input
+                      type="checkbox"
+                      checked={params.hasTitle}
+                      onChange={(e) => handleParamChange('hasTitle', e.target.checked)}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="ml-2 text-sm text-gray-700">Добавить заголовок</span>
+                  </label>
 
-            {params.hasTitle && (
-              <input
-                type="text"
-                value={params.title || ''}
-                onChange={(e) => handleParamChange('title', e.target.value)}
-                placeholder="Заголовок упражнения"
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-              />
+                  {params.hasTitle && (
+                    <div className="space-y-2">
+                      <input
+                        type="text"
+                        value={params.title || ''}
+                        onChange={(e) => handleParamChange('title', e.target.value)}
+                        placeholder="Заголовок упражнения"
+                        className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                      />
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={params.centerTitle}
+                          onChange={(e) => handleParamChange('centerTitle', e.target.checked)}
+                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="ml-2 text-xs text-gray-600">Центрировать заголовок</span>
+                      </label>
+                    </div>
+                  )}
+                </div>
+
+                {/* Опции PDF */}
+                <div className="grid grid-cols-2 gap-3">
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={params.pageNumbers}
+                      onChange={(e) => handleParamChange('pageNumbers', e.target.checked)}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="ml-2 text-xs text-gray-700">Номера страниц</span>
+                  </label>
+
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={params.includeInstructions}
+                      onChange={(e) => handleParamChange('includeInstructions', e.target.checked)}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="ml-2 text-xs text-gray-700">Включить инструкции</span>
+                  </label>
+                </div>
+              </div>
             )}
-
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                checked={params.centerTitle}
-                onChange={(e) => handleParamChange('centerTitle', e.target.checked)}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              />
-              <span className="ml-2 text-sm text-gray-700">Центрировать заголовок</span>
-            </label>
-
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                checked={params.pageNumbers}
-                onChange={(e) => handleParamChange('pageNumbers', e.target.checked)}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              />
-              <span className="ml-2 text-sm text-gray-700">Номера страниц</span>
-            </label>
-
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                checked={params.includeInstructions}
-                onChange={(e) => handleParamChange('includeInstructions', e.target.checked)}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              />
-              <span className="ml-2 text-sm text-gray-700">Включить инструкции</span>
-            </label>
           </div>
         </div>
 

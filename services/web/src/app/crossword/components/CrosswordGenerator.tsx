@@ -54,7 +54,7 @@ export default function CrosswordGenerator({
     setSelectedCategory(category)
     setCustomWords('')
     setWordInputError(null)
-    const categoryWords = CROSSWORD_PRESET_CATEGORIES[category].words
+    const categoryWords = [...CROSSWORD_PRESET_CATEGORIES[category].words] as CrosswordWord[]
     setParams(prev => ({ ...prev, words: categoryWords }))
   }
 

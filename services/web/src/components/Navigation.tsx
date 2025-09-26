@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, ComponentProps } from 'react'
+import { useState, useRef, ComponentProps } from 'react'
 
 interface NavigationItem {
   label: string
@@ -31,6 +31,23 @@ const navigationItems: NavigationItem[] = [
 export default function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
+  const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  const handleMouseEnter = (label: string) => {
+    // Clear any pending hide timeout
+    if (hideTimeoutRef.current) {
+      clearTimeout(hideTimeoutRef.current)
+      hideTimeoutRef.current = null
+    }
+    setActiveDropdown(label)
+  }
+
+  const handleMouseLeave = () => {
+    // Set a delay before hiding the dropdown
+    hideTimeoutRef.current = setTimeout(() => {
+      setActiveDropdown(null)
+    }, 200) // 200ms delay
+  }
 
   return (
     <nav className="bg-white shadow-lg sticky top-0 z-50">
@@ -51,8 +68,8 @@ export default function Navigation() {
                 {item.submenu ? (
                   <div
                     className="relative"
-                    onMouseEnter={() => setActiveDropdown(item.label)}
-                    onMouseLeave={() => setActiveDropdown(null)}
+                    onMouseEnter={() => handleMouseEnter(item.label)}
+                    onMouseLeave={handleMouseLeave}
                   >
                     <button className="text-gray-700 hover:text-blue-600 font-medium px-3 py-2 rounded-md text-sm transition-colors flex items-center gap-1">
                       {item.label}

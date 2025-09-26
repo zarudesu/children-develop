@@ -10,7 +10,7 @@ export type ReadingTextType =
   | 'extra-letters'       // 9. Текст с дополнительными буквами
   | 'mirror-text'         // 10. Зеркальный текст
   | 'mixed-types'         // 11. Смешанный тип ("сборная солянка")
-  | 'word-ladder'         // 12. Лесенка из слов
+  // | 'word-ladder'         // 12. Лесенка из слов (временно отключено)
 
 export type FontSize = 'super-huge' | 'huge' | 'extra-large' | 'large' | 'medium'
 export type TextCase = 'upper' | 'lower' | 'mixed'
@@ -212,12 +212,12 @@ export const TEXT_TYPE_DESCRIPTIONS: Record<ReadingTextType, {
     difficulty: 'hard',
     purpose: 'Развитие переключения внимания'
   },
-  'word-ladder': {
-    name: 'Лесенка слов',
-    description: 'Нарастающие фразы по принципу лесенки',
-    difficulty: 'easy',
-    purpose: 'Развитие плавности чтения'
-  }
+  // 'word-ladder': {
+  //   name: 'Лесенка слов',
+  //   description: 'Нарастающие фразы по принципу лесенки',
+  //   difficulty: 'easy',
+  //   purpose: 'Развитие плавности чтения'
+  // }
 }
 
 // Константы для алгоритмов

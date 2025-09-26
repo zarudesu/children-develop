@@ -1,4 +1,4 @@
-interface DownloadStats {
+export interface DownloadStats {
   filword: number
   readingText: number
   crossword: number
