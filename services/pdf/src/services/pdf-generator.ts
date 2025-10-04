@@ -2,7 +2,7 @@ import { chromium, Browser, BrowserContext } from 'playwright'
 import { readFileSync } from 'fs'
 import { join } from 'path'
 import Handlebars from 'handlebars'
-import { FilwordParams, TemplateData, GenerateRequest, ReadingTextParams, ReadingTextTemplateData, TEXT_TYPE_DESCRIPTIONS, FONT_FAMILY_SETTINGS, CrosswordParams } from '../types'
+import { FilwordParams, TemplateData, GenerateRequest, ReadingTextParams, ReadingTextTemplateData, TEXT_TYPE_DESCRIPTIONS, FONT_FAMILY_SETTINGS, CrosswordParams, ReadingTextType } from '../types'
 import { FilwordEngine } from './filword-engine'
 import { CrosswordEngine } from './crossword-engine'
 import { applyTextCase } from '../utils/text-utils'
@@ -249,26 +249,168 @@ async function generateFilwordPDF(params: FilwordParams): Promise<Buffer> {
   }
 }
 
+async function generateMultiPagePDF(params: ReadingTextParams, textTypes: ReadingTextType[]): Promise<Buffer> {
+  const startTime = Date.now()
+
+  try {
+    console.log(`Generating multi-page PDF with ${textTypes.length} pages: ${textTypes.join(', ')}`)
+
+    // Получение браузера и контекста
+    const browserContext = await getContext()
+    const page = await browserContext.newPage()
+
+    try {
+      // Загрузка шаблона
+      const templatesPath = process.env.NODE_ENV === 'production'
+        ? join(process.cwd(), 'templates')
+        : join(__dirname, '../templates')
+
+      const templateContent = readFileSync(join(templatesPath, 'reading-text-multi-page.html'), 'utf8')
+
+      // Регистрация Handlebars хелперов
+      if (!Handlebars.helpers.fontSize) {
+        Handlebars.registerHelper('fontSize', function(size: string) {
+          const fontSizes: Record<string, string> = {
+            'super-huge': '40px',
+            'huge': '32px',
+            'extra-large': '24px',
+            'large': '18px',
+            'medium': '14px'
+          }
+          return fontSizes[size] || '14px'
+        })
+      }
+
+      if (!Handlebars.helpers.fontFamily) {
+        Handlebars.registerHelper('fontFamily', function(family: string) {
+          const fontFamilies: Record<string, string> = {
+            'serif': '"Times New Roman", Times, serif',
+            'sans-serif': '"Arial", "Helvetica", sans-serif',
+            'mono': '"Courier New", Courier, monospace',
+            'cursive': '"Comic Sans MS", cursive',
+            'propisi': '"Propisi", "Kalam", "Comic Sans MS", cursive'
+          }
+          return fontFamilies[family] || '"Arial", "Helvetica", sans-serif'
+        })
+      }
+
+      if (!Handlebars.helpers.index_plus_one) {
+        Handlebars.registerHelper('index_plus_one', function(this: any) {
+          return this['@index'] + 1
+        })
+      }
+
+      const compiledTemplate = Handlebars.compile(templateContent)
+
+      // Подготовка страниц
+      const pages = textTypes.map((textType, index) => {
+        const transformedText = TextTransformer.transform(params.inputText, textType, {
+          cutPercentage: params.cutPercentage,
+          endingLength: params.endingLength,
+          reversedWordCount: params.reversedWordCount,
+          extraLetterDensity: params.extraLetterDensity,
+          keepFirstLast: params.keepFirstLast,
+          mixedMode: params.mixedMode,
+          textCase: params.textCase,
+          // Параметры для умного переноса слитного текста
+          fontFamily: params.fontFamily,
+          fontSize: params.fontSize,
+          containerWidth: 690  // A4 ширина минус padding (210mm - 20mm = 190mm ≈ 690px)
+        })
+
+        const typeInfo = TEXT_TYPE_DESCRIPTIONS[textType]
+
+        return {
+          title: typeInfo.name,
+          sourceText: index === 0 ? params.inputText : undefined, // Исходный текст только на первой странице
+          content: transformedText
+        }
+      })
+
+      // Подготовка данных для шаблона
+      const templateData = {
+        title: params.title || 'Упражнения на технику чтения',
+        pages,
+        fontSize: params.fontSize,
+        fontFamily: params.fontFamily || 'sans-serif'
+      }
+
+      // Генерация HTML
+      const html = compiledTemplate(templateData)
+
+      console.log(`Multi-page HTML generated in ${Date.now() - startTime}ms`)
+
+      // Загрузка HTML в браузер
+      await page.setContent(html, {
+        waitUntil: 'networkidle',
+        timeout: 30000
+      })
+
+      // Добавляем CSS стили для трансформаций
+      await page.addStyleTag({
+        content: TextTransformer.getTransformationStyles()
+      })
+
+      // Генерация PDF
+      const pdfBuffer = await page.pdf({
+        format: 'A4',
+        printBackground: true,
+        margin: {
+          top: '0mm',
+          bottom: '0mm',
+          left: '0mm',
+          right: '0mm'
+        },
+        preferCSSPageSize: true
+      })
+
+      console.log(`Multi-page PDF generated successfully in ${Date.now() - startTime}ms (${pdfBuffer.length} bytes)`)
+
+      return pdfBuffer
+
+    } finally {
+      await page.close()
+    }
+
+  } catch (error) {
+    console.error('Multi-page PDF generation failed:', error)
+    throw new Error(`Multi-page PDF generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+  }
+}
+
 async function generateReadingTextPDF(params: ReadingTextParams): Promise<Buffer> {
   const startTime = Date.now()
 
   try {
-    console.log(`Starting reading text PDF generation: ${params.textType}`)
+    // Определяем, многостраничный ли режим
+    const textTypes = Array.isArray(params.textType) ? params.textType : [params.textType]
+    const isMultiPage = textTypes.length > 1
 
-    // Трансформация текста
-    const transformedText = TextTransformer.transform(params.inputText, params.textType, {
+    console.log(`Starting reading text PDF generation: ${textTypes.join(', ')} (${textTypes.length} pages)`)
+
+    if (isMultiPage) {
+      return generateMultiPagePDF(params, textTypes)
+    }
+
+    // Старая логика для одностраничного PDF
+    const transformedText = TextTransformer.transform(params.inputText, textTypes[0], {
       cutPercentage: params.cutPercentage,
       endingLength: params.endingLength,
       reversedWordCount: params.reversedWordCount,
       extraLetterDensity: params.extraLetterDensity,
       keepFirstLast: params.keepFirstLast,
       mixedMode: params.mixedMode,
-      textCase: params.textCase
+      textCase: params.textCase,
+      // Параметры для умного переноса слитного текста
+      fontFamily: params.fontFamily,
+      fontSize: params.fontSize,
+      containerWidth: 690  // A4 ширина минус padding
     })
 
     // Подсчет метаданных
     const words = params.inputText.trim().split(/\s+/).filter(w => w.length > 0)
-    const typeInfo = TEXT_TYPE_DESCRIPTIONS[params.textType]
+    const firstType = Array.isArray(params.textType) ? params.textType[0] : params.textType
+    const typeInfo = TEXT_TYPE_DESCRIPTIONS[firstType]
 
     // Получение браузера и контекста
     const browserContext = await getContext()
@@ -322,7 +464,7 @@ async function generateReadingTextPDF(params: ReadingTextParams): Promise<Buffer
 
       // Подготовка данных для шаблона
       const templateData: ReadingTextTemplateData = {
-        type: params.textType,
+        type: firstType,
         title: params.title || 'Упражнение на технику чтения',
         centerTitle: params.centerTitle !== false,
         originalText: params.inputText,
@@ -386,8 +528,11 @@ async function generateReadingTextHTML(params: ReadingTextParams): Promise<strin
   try {
     console.log(`Generating reading text HTML: ${params.textType}`)
 
+    // Определяем тип для работы с одиночным типом
+    const firstType = Array.isArray(params.textType) ? params.textType[0] : params.textType
+
     // Трансформация текста
-    const transformedText = TextTransformer.transform(params.inputText, params.textType, {
+    const transformedText = TextTransformer.transform(params.inputText, firstType, {
       cutPercentage: params.cutPercentage,
       endingLength: params.endingLength,
       reversedWordCount: params.reversedWordCount,
@@ -399,7 +544,7 @@ async function generateReadingTextHTML(params: ReadingTextParams): Promise<strin
 
     // Подсчет метаданных
     const words = params.inputText.trim().split(/\s+/).filter(w => w.length > 0)
-    const typeInfo = TEXT_TYPE_DESCRIPTIONS[params.textType]
+    const typeInfo = TEXT_TYPE_DESCRIPTIONS[firstType]
 
     // Загрузка шаблона
     const templatesPath = process.env.NODE_ENV === 'production'
@@ -448,7 +593,7 @@ async function generateReadingTextHTML(params: ReadingTextParams): Promise<strin
 
     // Подготовка данных для шаблона
     const templateData: ReadingTextTemplateData = {
-      type: params.textType,
+      type: firstType,
       title: params.title || 'Упражнение на технику чтения',
       centerTitle: params.centerTitle !== false,
       originalText: params.inputText,

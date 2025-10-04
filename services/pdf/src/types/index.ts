@@ -1,6 +1,6 @@
 export type GridSize = '10x10' | '11x11' | '12x12' | '13x13' | '14x14' | '15x15' | '16x16' | '17x17' | '18x18' | '19x19' | '20x20' | '21x21' | '22x22' | '23x23' | '24x24' | '25x25'
 export type TextCase = 'upper' | 'lower' | 'mixed'
-export type FontSize = 'huge' | 'extra-large' | 'large' | 'medium' | 'small' | 'tiny'
+export type FontSize = 'super-huge' | 'huge' | 'extra-large' | 'large' | 'medium' | 'small' | 'tiny'
 export type FontFamily = 'serif' | 'sans-serif' | 'mono' | 'cursive' | 'propisi'
 export type Direction = 'right' | 'left' | 'up' | 'down'
 
@@ -57,7 +57,7 @@ export interface FilwordGrid {
 
 export interface ReadingTextParams {
   // Основные параметры
-  textType: ReadingTextType
+  textType: ReadingTextType | ReadingTextType[]
   inputText: string
   fontSize: FontSize
   fontFamily: FontFamily
@@ -128,7 +128,7 @@ export interface CrosswordParams {
   gridSize: CrosswordSize
   difficulty: CrosswordDifficulty
   style: CrosswordStyle
-  fontSize: 'large' | 'medium' | 'small'
+  fontSize: FontSize
   includeAnswers: boolean
   showNumbers: boolean
   blackSquareRatio: number
