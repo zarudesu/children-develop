@@ -1,0 +1,154 @@
+version: '3.8'
+
+services:
+  # PostgreSQL для Directus
+  postgres:
+    image: postgres:15
+    container_name: childdev-postgres
+    environment:
+      POSTGRES_DB: childdev
+      POSTGRES_USER: directus
+      POSTGRES_PASSWORD: directus
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - childdev-network
+    restart: unless-stopped
+
+  # Directus CMS
+  directus:
+    image: directus/directus:latest
+    container_name: childdev-directus
+    ports:
+      - "8055:8055"
+    environment:
+      KEY: "255d861b-5ea1-5996-9aa3-922530ec40b1"
+      SECRET: "6116487b-cda1-52c2-b5b5-c8022c45e263"
+
+      DB_CLIENT: "pg"
+      DB_HOST: "postgres"
+      DB_PORT: "5432"
+      DB_DATABASE: "childdev"
+      DB_USER: "directus"
+      DB_PASSWORD: "directus"
+
+      ADMIN_EMAIL: "admin@childdev.local"
+      ADMIN_PASSWORD: "directus123"
+
+      # Public URL для локальной разработки
+      PUBLIC_URL: "http://localhost:8055"
+
+      # CORS настройки для Next.js
+      CORS_ENABLED: "true"
+      CORS_ORIGIN: "http://localhost:3002"
+
+      # Файловое хранилище
+      STORAGE_LOCATIONS: "local"
+      STORAGE_LOCAL_DRIVER: "local"
+      STORAGE_LOCAL_ROOT: "./uploads"
+
+      # Логирование
+      LOG_LEVEL: "info"
+      LOG_STYLE: "pretty"
+
+      # Кэширование
+      CACHE_ENABLED: "true"
+      CACHE_AUTO_PURGE: "true"
+
+      # Безопасность
+      RATE_LIMITER_ENABLED: "true"
+      RATE_LIMITER_POINTS: "25"
+      RATE_LIMITER_DURATION: "1"
+
+    volumes:
+      - directus_uploads:/directus/uploads
+      - directus_data:/directus/database
+    networks:
+      - childdev-network
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8055/server/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Redis для кэширования и сессий
+  redis:
+    image: redis:7-alpine
+    container_name: childdev-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - childdev-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+
+  # Next.js веб-приложение
+  childdev-web:
+    build:
+      context: ./services/web
+      dockerfile: Dockerfile.dev
+      args:
+        NODE_ENV: development
+    container_name: childdev-web-dev
+    ports:
+      - "3002:3002"
+    environment:
+      - NODE_ENV=development
+      - PDF_SERVICE_URL=http://childdev-pdf:3001
+      - DIRECTUS_URL=http://directus:8055
+      - DIRECTUS_ADMIN_EMAIL=admin@childdev.local
+      - DIRECTUS_ADMIN_PASSWORD=directus123
+      - NEXT_TELEMETRY_DISABLED=1
+    volumes:
+      - ./services/web:/app
+      - /app/node_modules
+      - /app/.next
+    networks:
+      - childdev-network
+    depends_on:
+      - directus
+      - childdev-pdf
+    restart: unless-stopped
+
+  # PDF генератор
+  childdev-pdf:
+    build:
+      context: ./services/pdf
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: development
+    container_name: childdev-pdf-dev
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=development
+      - DIRECTUS_URL=http://directus:8055
+    volumes:
+      - ./services/pdf:/app
+      - /app/node_modules
+    networks:
+      - childdev-network
+    restart: unless-stopped
+    shm_size: 1gb
+
+networks:
+  childdev-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  directus_uploads:
+    driver: local
+  directus_data:
+    driver: local
+  redis_data:
+    driver: local

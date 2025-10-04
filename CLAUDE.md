@@ -26,6 +26,54 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Коммуникации:** web → pdf (обязательно), web → api (опционально), pdf → S3 (если сохраняем файлы)
 
+## 🚀 DIRECTUS ИНТЕГРАЦИЯ (ГОТОВА К РАЗВЕРТЫВАНИЮ)
+
+### Статус интеграции: ✅ ГОТОВО
+
+**Созданная инфраструктура Directus:**
+- **Схема данных**: автоматическая настройка через `scripts/setup-directus-schema.js`
+- **TypeScript клиент**: полная типизация в `services/web/src/lib/directus.ts`
+- **Docker конфигурация**: готовые compose файлы для локальной разработки и продакшена
+- **Скрипты развертывания**: автоматизированные скрипты для быстрого запуска
+
+### Быстрый запуск Directus
+
+#### Локальная разработка
+```bash
+./scripts/run-local-with-directus.sh    # Запуск Directus + PostgreSQL + Redis
+# Доступ: http://localhost:8055/admin (admin@childdev.local / directus123)
+./scripts/stop-local-directus.sh        # Остановка
+```
+
+#### Продакшен
+```bash
+cp .env.directus-prod.example .env.directus-prod  # Настроить переменные
+./scripts/deploy-directus-prod.sh                 # Развертывание на children.hhivp.com
+# Доступ: https://children.hhivp.com/admin
+```
+
+### Созданные файлы интеграции
+- `.env.directus-prod.example` — шаблон переменных продакшена
+- `docker-compose.directus-prod.yml` — Docker конфигурация продакшена
+- `services/web/src/lib/directus.ts` — TypeScript клиент с типами
+- `scripts/setup-directus-schema.js` — автоматическая настройка схемы
+- `scripts/deploy-directus-prod.sh` — скрипт развертывания продакшена
+- `scripts/run-local-with-directus.sh` — скрипт локальной разработки
+- `docs/DIRECTUS_DEPLOYMENT_GUIDE.md` — полное руководство по развертыванию
+
+### Схема данных Directus
+1. **directus_users** (расширенная): subscription_type, generations_today, subscription_end_date
+2. **generators**: все доступные генераторы с параметрами и настройками премиум доступа
+3. **user_generations**: история генераций пользователей с PDF файлами и метриками
+
+### Следующие этапы разработки
+1. **Интеграция аутентификации** — замена mock авторизации на Directus
+2. **Система подписок** — интеграция ЮKassa с лимитами генераций
+3. **Пользовательские кабинеты** — история генераций, управление подпиской
+4. **Админ панель** — управление генераторами и пользователями через Directus
+
+**Документация:** `docs/DIRECTUS_INTEGRATION_PLAN.md` и `docs/DIRECTUS_DEPLOYMENT_GUIDE.md`
+
 ## Deployment Infrastructure
 
 ### Production VPS: children.hhivp.com
@@ -173,8 +221,31 @@ ssh children-vps "cd childdev-cl && docker-compose -f docker-compose.prod.yml up
 # Start PDF service через Docker (рекомендуется)
 ./scripts/run-docker-pdf.sh
 
+# Start with Directus (full development environment)
+./scripts/run-local-with-directus.sh
+
 # Stop all services
 ./scripts/stop-local.sh
+```
+
+### Directus Development Environment
+
+Для полноценной разработки с аутентификацией и контент-менеджментом используйте:
+
+```bash
+# Запуск полной среды с Directus
+./scripts/run-local-with-directus.sh
+
+# Доступные сервисы:
+# - Веб-приложение:    http://localhost:3002
+# - PDF сервис:        http://localhost:3001
+# - Directus админка:  http://localhost:8055
+# - PostgreSQL:        localhost:5432
+# - Redis:             localhost:6379
+
+# Доступы в Directus:
+# Email:    admin@childdev.local
+# Password: directus123
 ```
 
 ### Web Service (services/web)

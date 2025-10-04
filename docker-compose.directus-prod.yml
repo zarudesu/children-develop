@@ -1,0 +1,188 @@
+version: '3.8'
+
+services:
+  # PostgreSQL база данных для Directus
+  postgres-directus:
+    image: postgres:15
+    container_name: childdev-postgres-directus
+    environment:
+      POSTGRES_DB: childdev_directus_prod
+      POSTGRES_USER: directus_prod
+      POSTGRES_PASSWORD: ${DIRECTUS_DB_PASSWORD}
+    volumes:
+      - postgres_directus_data:/var/lib/postgresql/data
+    networks:
+      - childdev-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U directus_prod -d childdev_directus_prod"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Directus CMS
+  directus:
+    image: directus/directus:latest
+    container_name: childdev-directus
+    ports:
+      - "8055:8055"
+    environment:
+      # Секретные ключи (должны быть надежными в продакшене)
+      KEY: ${DIRECTUS_KEY}
+      SECRET: ${DIRECTUS_SECRET}
+
+      # Подключение к базе данных
+      DB_CLIENT: pg
+      DB_HOST: postgres-directus
+      DB_PORT: 5432
+      DB_DATABASE: childdev_directus_prod
+      DB_USER: directus_prod
+      DB_PASSWORD: ${DIRECTUS_DB_PASSWORD}
+
+      # Публичный URL
+      PUBLIC_URL: https://children.hhivp.com
+
+      # Администратор по умолчанию
+      ADMIN_EMAIL: ${DIRECTUS_ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${DIRECTUS_ADMIN_PASSWORD}
+
+      # CORS настройки
+      CORS_ENABLED: "true"
+      CORS_ORIGIN: "https://children.hhivp.com"
+
+      # Файловое хранилище
+      STORAGE_LOCATIONS: "local"
+      STORAGE_LOCAL_DRIVER: "local"
+      STORAGE_LOCAL_ROOT: "/directus/uploads"
+
+      # Email конфигурация (опционально)
+      EMAIL_FROM: ${EMAIL_FROM:-noreply@children.hhivp.com}
+      EMAIL_TRANSPORT: ${EMAIL_TRANSPORT:-sendmail}
+
+      # Логирование
+      LOG_LEVEL: "warn"
+      LOG_STYLE: "raw"
+
+      # Кэширование
+      CACHE_ENABLED: "true"
+      CACHE_AUTO_PURGE: "true"
+      CACHE_STORE: "redis"
+      REDIS: "redis://redis:6379"
+
+      # Безопасность
+      RATE_LIMITER_ENABLED: "true"
+      RATE_LIMITER_POINTS: "50"
+      RATE_LIMITER_DURATION: "1"
+
+      # Оптимизация
+      MAX_PAYLOAD_SIZE: "100mb"
+      SERVE_APP: "true"
+
+      # Отключение телеметрии
+      TELEMETRY: "false"
+
+    volumes:
+      - directus_uploads:/directus/uploads
+      - directus_data:/directus/database
+    networks:
+      - childdev-network
+    depends_on:
+      - postgres-directus
+      - redis
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8055/server/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Redis для кэширования
+  redis:
+    image: redis:7-alpine
+    container_name: childdev-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    networks:
+      - childdev-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Веб-приложение ChildDev
+  childdev-web:
+    build:
+      context: ./services/web
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: production
+    container_name: childdev-web
+    ports:
+      - "3002:3002"
+    environment:
+      - NODE_ENV=production
+      - PDF_SERVICE_URL=http://childdev-pdf:3001
+      - DIRECTUS_URL=http://directus:8055
+      - NEXT_PUBLIC_DIRECTUS_URL=https://children.hhivp.com/api
+      - NEXT_TELEMETRY_DISABLED=1
+
+      # Интеграция с платежами
+      - YOOKASSA_SHOP_ID=${YOOKASSA_SHOP_ID}
+      - YOOKASSA_SECRET_KEY=${YOOKASSA_SECRET_KEY}
+
+    networks:
+      - childdev-network
+    depends_on:
+      - directus
+      - childdev-pdf
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3002/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # PDF генератор
+  childdev-pdf:
+    build:
+      context: ./services/pdf
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: production
+    container_name: childdev-pdf
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - DIRECTUS_URL=http://directus:8055
+    networks:
+      - childdev-network
+    restart: unless-stopped
+    shm_size: 1gb
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+networks:
+  childdev-network:
+    driver: bridge
+
+volumes:
+  postgres_directus_data:
+    driver: local
+  directus_uploads:
+    driver: local
+  directus_data:
+    driver: local
+  redis_data:
+    driver: local

@@ -1,512 +1,340 @@
 'use client'
 
-import React, { useState } from 'react'
-import {
-  CrosswordParams,
-  CrosswordSize,
-  CrosswordDifficulty,
-  CrosswordStyle,
-  CrosswordWord,
-  CROSSWORD_GRID_SIZES,
-  CROSSWORD_DIFFICULTY_SETTINGS,
-  CROSSWORD_STYLES,
-  CROSSWORD_PRESET_CATEGORIES,
-  CrosswordPresetCategory
-} from '../types'
+import { useState } from 'react'
+import { CrosswordParams, CrosswordWord, GRID_SIZES, DIFFICULTIES, CROSSWORD_STYLES, FONT_SIZES, CROSSWORD_THEMES } from '../types'
 
 interface CrosswordGeneratorProps {
-  onGenerate?: (params: CrosswordParams) => void
-  loading?: boolean
+  onGenerate: (params: CrosswordParams) => Promise<void>
+  isGenerating: boolean
 }
 
-export default function CrosswordGenerator({
-  onGenerate,
-  loading = false
-}: CrosswordGeneratorProps) {
-  const [params, setParams] = useState<CrosswordParams>({
-    words: [],
-    gridSize: '15x15',
-    difficulty: 'medium',
-    style: 'classic',
-    fontSize: 'medium',
-    includeAnswers: true,
-    showNumbers: true,
-    blackSquareRatio: 0.12
-  })
+export function CrosswordGenerator({ onGenerate, isGenerating }: CrosswordGeneratorProps) {
+  const [words, setWords] = useState<CrosswordWord[]>([])
+  const [currentWord, setCurrentWord] = useState('')
+  const [currentClue, setCurrentClue] = useState('')
+  const [gridSize, setGridSize] = useState<'9x9' | '11x11' | '13x13' | '15x15' | '17x17' | '19x19'>('11x11')
+  const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('easy')
+  const [style, setStyle] = useState<'classic' | 'modern' | 'themed'>('classic')
+  const [fontSize, setFontSize] = useState<'small' | 'medium' | 'large'>('medium')
+  const [includeAnswers, setIncludeAnswers] = useState(true)
+  const [showNumbers, setShowNumbers] = useState(true)
+  const [blackSquareRatio, setBlackSquareRatio] = useState(0.15)
+  const [errors, setErrors] = useState<string[]>([])
 
-  const [selectedCategory, setSelectedCategory] = useState<CrosswordPresetCategory | null>(null)
-  const [customWords, setCustomWords] = useState('')
-  const [wordInputError, setWordInputError] = useState<string | null>(null)
-  const [showPreview, setShowPreview] = useState(false)
-  const [previewHtml, setPreviewHtml] = useState<string | null>(null)
-  const [previewLoading, setPreviewLoading] = useState(false)
-
-  // Обновление параметров
-  const handleParamChange = <K extends keyof CrosswordParams>(
-    key: K,
-    value: CrosswordParams[K]
-  ) => {
-    setParams(prev => ({ ...prev, [key]: value }))
-  }
-
-  // Выбор готовой категории
-  const handleCategorySelect = (category: CrosswordPresetCategory) => {
-    setSelectedCategory(category)
-    setCustomWords('')
-    setWordInputError(null)
-    const categoryWords = [...CROSSWORD_PRESET_CATEGORIES[category].words] as CrosswordWord[]
-    setParams(prev => ({ ...prev, words: categoryWords }))
-  }
-
-  // Обработка пользовательского ввода слов
-  const handleCustomWordsChange = (input: string) => {
-    setCustomWords(input)
-    setWordInputError(null)
-
-    if (input.trim()) {
-      setSelectedCategory(null)
-
-      try {
-        const parsed = parseCustomWords(input)
-        setParams(prev => ({ ...prev, words: parsed }))
-      } catch (error) {
-        setWordInputError(error instanceof Error ? error.message : 'Ошибка разбора слов')
-        setParams(prev => ({ ...prev, words: [] }))
-      }
-    } else {
-      setParams(prev => ({ ...prev, words: [] }))
-    }
-  }
-
-  // Парсинг слов с определениями
-  const parseCustomWords = (input: string): CrosswordWord[] => {
-    const lines = input.split('\n').filter(line => line.trim())
-    const words: CrosswordWord[] = []
-
-    for (const line of lines) {
-      const trimmed = line.trim()
-
-      // Формат: "слово - определение" или "слово: определение"
-      const match = trimmed.match(/^([а-яё]+)\s*[-:]\s*(.+)$/i)
-
-      if (match) {
-        const [, word, clue] = match
-        const cleanWord = word.toLowerCase().trim()
-        const cleanClue = clue.trim()
-
-        if (cleanWord.length < 3) {
-          throw new Error(`Слово "${cleanWord}" слишком короткое (минимум 3 буквы)`)
-        }
-
-        if (cleanWord.length > 15) {
-          throw new Error(`Слово "${cleanWord}" слишком длинное (максимум 15 букв)`)
-        }
-
-        if (cleanClue.length < 3) {
-          throw new Error(`Определение для "${cleanWord}" слишком короткое`)
-        }
-
-        words.push({
-          word: cleanWord,
-          clue: cleanClue,
-          answer: cleanWord,
-          length: cleanWord.length
-        })
-      } else {
-        throw new Error(`Неверный формат строки: "${trimmed}". Используйте: слово - определение`)
-      }
-    }
-
-    if (words.length === 0) {
-      throw new Error('Не найдено корректных слов')
-    }
-
-    // Проверка на дубли
-    const uniqueWords = new Set(words.map(w => w.word))
-    if (uniqueWords.size < words.length) {
-      throw new Error('Найдены повторяющиеся слова')
-    }
-
-    return words
-  }
-
-  // HTML превью
-  const handlePreview = async () => {
-    if (params.words.length === 0) {
-      alert('Выберите категорию слов или введите свои слова с определениями')
+  const addWord = () => {
+    if (!currentWord.trim() || !currentClue.trim()) {
+      setErrors(['Введите слово и определение'])
       return
     }
 
-    if (params.words.length < 5) {
-      alert('Минимум 5 слов нужно для создания кроссворда')
+    if (currentWord.length < 3) {
+      setErrors(['Слово должно содержать минимум 3 буквы'])
       return
     }
 
-    setPreviewLoading(true)
-    try {
-      const response = await fetch('/api/crossword/debug-html', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(params)
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || 'Ошибка генерации превью')
-      }
-
-      const html = await response.text()
-      setPreviewHtml(html)
-      setShowPreview(true)
-    } catch (error) {
-      console.error('Preview error:', error)
-      alert(error instanceof Error ? error.message : 'Ошибка создания превью')
-    } finally {
-      setPreviewLoading(false)
+    if (currentClue.length < 5) {
+      setErrors(['Определение должно содержать минимум 5 символов'])
+      return
     }
+
+    if (!/^[а-яёА-ЯЁ]+$/.test(currentWord)) {
+      setErrors(['Слово должно содержать только русские буквы'])
+      return
+    }
+
+    const newWord: CrosswordWord = {
+      word: currentWord.toLowerCase(),
+      clue: currentClue,
+      answer: currentWord.toLowerCase(),
+      length: currentWord.length
+    }
+
+    setWords([...words, newWord])
+    setCurrentWord('')
+    setCurrentClue('')
+    setErrors([])
   }
 
-  // Генерация кроссворда
-  const handleGenerate = () => {
-    if (params.words.length === 0) {
-      alert('Выберите категорию слов или введите свои слова с определениями')
-      return
-    }
-
-    if (params.words.length < 5) {
-      alert('Минимум 5 слов нужно для создания кроссворда')
-      return
-    }
-
-    const maxWords = CROSSWORD_DIFFICULTY_SETTINGS[params.difficulty].maxWords
-    if (params.words.length > maxWords) {
-      alert(`Слишком много слов для уровня сложности "${CROSSWORD_DIFFICULTY_SETTINGS[params.difficulty].name}". Максимум: ${maxWords}`)
-      return
-    }
-
-    if (onGenerate) {
-      onGenerate(params)
-    }
+  const removeWord = (index: number) => {
+    setWords(words.filter((_, i) => i !== index))
   }
 
-  const canGenerate = params.words.length >= 5 && !loading && !wordInputError
+  const loadTheme = (themeName: keyof typeof CROSSWORD_THEMES) => {
+    const theme = CROSSWORD_THEMES[themeName]
+    setWords([...theme.words])
+    setErrors([])
+  }
+
+  const handleGenerate = async () => {
+    if (words.length < 5) {
+      setErrors(['Необходимо минимум 5 слов для создания кроссворда'])
+      return
+    }
+
+    if (words.length > 50) {
+      setErrors(['Максимум 50 слов'])
+      return
+    }
+
+    const params: CrosswordParams = {
+      words,
+      gridSize,
+      difficulty,
+      style,
+      fontSize,
+      includeAnswers,
+      showNumbers,
+      blackSquareRatio
+    }
+
+    setErrors([])
+    await onGenerate(params)
+  }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Левая колонка - Настройки */}
-        <div className="space-y-6">
-          {/* Размер и сложность */}
-          <div className="bg-white rounded-lg shadow-sm border p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="text-xl">🎯</span>
-              <h3 className="text-lg font-medium text-gray-900">Основные настройки</h3>
-            </div>
+    <div className="bg-white rounded-lg shadow-sm p-6">
+      <h2 className="text-2xl font-bold text-gray-800 mb-6">Создание кроссворда</h2>
 
-            {/* Размер сетки */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Размер сетки
-              </label>
-              <div className="grid grid-cols-3 gap-2">
-                {Object.entries(CROSSWORD_GRID_SIZES).map(([size, num]) => (
-                  <button
-                    key={size}
-                    type="button"
-                    onClick={() => handleParamChange('gridSize', size as CrosswordSize)}
-                    className={`p-2 text-center rounded-lg border-2 transition-all text-sm ${
-                      params.gridSize === size
-                        ? 'border-green-500 bg-green-50 text-green-700'
-                        : 'border-gray-200 bg-white hover:border-gray-300'
-                    }`}
-                  >
-                    <div className="font-semibold">{size}</div>
-                    <div className="text-xs text-gray-600">{num}×{num}</div>
-                  </button>
-                ))}
+      {/* Ошибки */}
+      {errors.length > 0 && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+          <div className="flex">
+            <div className="text-red-400">⚠️</div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-red-800">Исправьте ошибки:</h3>
+              <div className="mt-2 text-sm text-red-700">
+                <ul className="list-disc list-inside space-y-1">
+                  {errors.map((error, index) => (
+                    <li key={index}>{error}</li>
+                  ))}
+                </ul>
               </div>
-            </div>
-
-            {/* Сложность */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Уровень сложности
-              </label>
-              <div className="space-y-2">
-                {Object.entries(CROSSWORD_DIFFICULTY_SETTINGS).map(([key, settings]) => (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => handleParamChange('difficulty', key as CrosswordDifficulty)}
-                    className={`w-full p-3 text-left rounded-lg border-2 transition-all ${
-                      params.difficulty === key
-                        ? 'border-green-500 bg-green-50'
-                        : 'border-gray-200 bg-white hover:border-gray-300'
-                    }`}
-                  >
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <div className="font-medium">{settings.name}</div>
-                        <div className="text-sm text-gray-600">{settings.description}</div>
-                      </div>
-                      {params.difficulty === key && (
-                        <span className="text-green-500 text-lg">✓</span>
-                      )}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Стиль кроссворда */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Стиль кроссворда
-              </label>
-              <div className="space-y-2">
-                {Object.entries(CROSSWORD_STYLES).map(([key, style]) => (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => handleParamChange('style', key as CrosswordStyle)}
-                    className={`w-full p-3 text-left rounded-lg border-2 transition-all ${
-                      params.style === key
-                        ? 'border-green-500 bg-green-50'
-                        : 'border-gray-200 bg-white hover:border-gray-300'
-                    }`}
-                  >
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <div className="font-medium">{style.name}</div>
-                        <div className="text-sm text-gray-600">{style.description}</div>
-                      </div>
-                      {params.style === key && (
-                        <span className="text-green-500 text-lg">✓</span>
-                      )}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Дополнительные настройки */}
-          <div className="bg-white rounded-lg shadow-sm border p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="text-xl">⚙️</span>
-              <h3 className="text-lg font-medium text-gray-900">Дополнительные настройки</h3>
-            </div>
-
-            <div className="space-y-3">
-              <label className="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  checked={params.includeAnswers}
-                  onChange={(e) => handleParamChange('includeAnswers', e.target.checked)}
-                  className="h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
-                />
-                <span className="text-sm text-gray-700">Включить страницу с ответами</span>
-              </label>
-
-              <label className="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  checked={params.showNumbers}
-                  onChange={(e) => handleParamChange('showNumbers', e.target.checked)}
-                  className="h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
-                />
-                <span className="text-sm text-gray-700">Показывать номера клеток</span>
-              </label>
-            </div>
-          </div>
-        </div>
-
-        {/* Правая колонка - Слова */}
-        <div className="space-y-6">
-          {/* Готовые категории */}
-          <div className="bg-white rounded-lg shadow-sm border p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="text-xl">📚</span>
-              <h3 className="text-lg font-medium text-gray-900">Готовые категории</h3>
-            </div>
-
-            <div className="space-y-2">
-              {Object.entries(CROSSWORD_PRESET_CATEGORIES).map(([key, category]) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => handleCategorySelect(key as CrosswordPresetCategory)}
-                  className={`w-full p-3 text-left rounded-lg border-2 transition-all ${
-                    selectedCategory === key
-                      ? 'border-green-500 bg-green-50'
-                      : 'border-gray-200 bg-white hover:border-gray-300'
-                  }`}
-                >
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <div className="font-medium">{category.name}</div>
-                      <div className="text-sm text-gray-600">
-                        {category.words.length} слов с определениями
-                      </div>
-                    </div>
-                    {selectedCategory === key && (
-                      <span className="text-green-500 text-lg">✓</span>
-                    )}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Свои слова */}
-          <div className="bg-white rounded-lg shadow-sm border p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="text-xl">✏️</span>
-              <h3 className="text-lg font-medium text-gray-900">Свои слова с определениями</h3>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Введите слова с определениями:
-              </label>
-              <textarea
-                value={customWords}
-                onChange={(e) => handleCustomWordsChange(e.target.value)}
-                placeholder={`кот - домашнее животное
-собака - друг человека
-дом - место где мы живём
-
-Формат: слово - определение
-Каждое слово с новой строки`}
-                rows={8}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm ${
-                  wordInputError ? 'border-red-300' : 'border-gray-300'
-                }`}
-              />
-
-              {wordInputError && (
-                <div className="mt-2 text-sm text-red-600">
-                  {wordInputError}
-                </div>
-              )}
-
-              <div className="mt-2 text-xs text-gray-500 space-y-1">
-                <p>• Формат: слово - определение (через дефис)</p>
-                <p>• Только кириллица, длина слова: 3-15 букв</p>
-                <p>• Минимум 5 слов для создания кроссворда</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Кнопка генерации */}
-          <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-6">
-            <div className="text-center space-y-4">
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p className="text-gray-600">Слов готово</p>
-                  <p className="font-semibold text-gray-900">{params.words.length}</p>
-                </div>
-                <div>
-                  <p className="text-gray-600">Размер сетки</p>
-                  <p className="font-semibold text-gray-900">{params.gridSize}</p>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <button
-                  type="button"
-                  onClick={handlePreview}
-                  disabled={!canGenerate || previewLoading}
-                  className={`w-full py-2 px-4 rounded-lg font-medium text-sm transition-all transform focus:outline-none focus:ring-4 focus:ring-offset-2 ${
-                    canGenerate && !previewLoading
-                      ? 'bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200 hover:scale-105 focus:ring-gray-300'
-                      : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                  }`}
-                >
-                  {previewLoading ? (
-                    <span className="flex items-center justify-center">
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Создание превью...
-                    </span>
-                  ) : (
-                    <span className="flex items-center justify-center">
-                      <span className="mr-2 text-lg">👁️</span>
-                      Показать превью
-                    </span>
-                  )}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleGenerate}
-                  disabled={!canGenerate}
-                  className={`w-full py-3 px-6 rounded-lg font-semibold text-base transition-all transform focus:outline-none focus:ring-4 focus:ring-offset-2 ${
-                    canGenerate
-                      ? 'bg-gradient-to-r from-green-600 to-blue-600 text-white hover:from-green-700 hover:to-blue-700 hover:scale-105 focus:ring-green-300'
-                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  }`}
-                >
-                  {loading ? (
-                    <span className="flex items-center justify-center">
-                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Генерация кроссворда...
-                    </span>
-                  ) : (
-                    <span className="flex items-center justify-center">
-                      <span className="mr-2 text-lg">🧩</span>
-                      Создать кроссворд
-                    </span>
-                  )}
-                </button>
-              </div>
-
-              {!canGenerate && !loading && (
-                <p className="text-xs text-gray-600">
-                  {params.words.length === 0
-                    ? '💡 Выберите категорию или введите свои слова'
-                    : params.words.length < 5
-                    ? `💡 Добавьте ещё ${5 - params.words.length} слов`
-                    : wordInputError
-                    ? '❌ Исправьте ошибки в словах'
-                    : '💡 Готов к созданию'
-                  }
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* HTML Preview Modal */}
-      {showPreview && previewHtml && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-            <div className="flex justify-between items-center p-4 border-b">
-              <h3 className="text-lg font-semibold">Превью кроссворда</h3>
-              <button
-                onClick={() => setShowPreview(false)}
-                className="text-gray-500 hover:text-gray-700 text-2xl"
-              >
-                ×
-              </button>
-            </div>
-            <div className="flex-1 overflow-auto p-4">
-              <div
-                dangerouslySetInnerHTML={{ __html: previewHtml }}
-                className="crossword-preview"
-              />
             </div>
           </div>
         </div>
       )}
+
+      {/* Готовые темы */}
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold text-gray-800 mb-3">Готовые темы</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {Object.entries(CROSSWORD_THEMES).map(([key, theme]) => (
+            <button
+              key={key}
+              onClick={() => loadTheme(key as keyof typeof CROSSWORD_THEMES)}
+              className="p-3 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors text-center"
+            >
+              <div className="text-2xl mb-1">{theme.icon}</div>
+              <div className="text-sm font-medium text-gray-800">{theme.name}</div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Добавление слов */}
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold text-gray-800 mb-3">Добавить слова</h3>
+        <div className="grid md:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Слово
+            </label>
+            <input
+              type="text"
+              value={currentWord}
+              onChange={(e) => setCurrentWord(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Введите слово"
+              maxLength={15}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Определение
+            </label>
+            <input
+              type="text"
+              value={currentClue}
+              onChange={(e) => setCurrentClue(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Определение слова"
+              maxLength={100}
+            />
+          </div>
+          <div className="flex items-end">
+            <button
+              onClick={addWord}
+              className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            >
+              Добавить
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Список слов */}
+      {words.length > 0 && (
+        <div className="mb-6">
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">
+            Слова для кроссворда ({words.length})
+          </h3>
+          <div className="space-y-2 max-h-60 overflow-y-auto">
+            {words.map((word, index) => (
+              <div key={index} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+                <div className="flex-1">
+                  <span className="font-medium text-gray-800">{word.word}</span>
+                  <span className="text-gray-600 ml-2">— {word.clue}</span>
+                </div>
+                <button
+                  onClick={() => removeWord(index)}
+                  className="text-red-500 hover:text-red-700 ml-2"
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Настройки */}
+      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Размер сетки
+          </label>
+          <select
+            value={gridSize}
+            onChange={(e) => setGridSize(e.target.value as any)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+          >
+            {GRID_SIZES.map((size) => (
+              <option key={size.value} value={size.value}>
+                {size.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Сложность
+          </label>
+          <select
+            value={difficulty}
+            onChange={(e) => setDifficulty(e.target.value as any)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+          >
+            {DIFFICULTIES.map((diff) => (
+              <option key={diff.value} value={diff.value}>
+                {diff.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Стиль
+          </label>
+          <select
+            value={style}
+            onChange={(e) => setStyle(e.target.value as any)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+          >
+            {CROSSWORD_STYLES.map((st) => (
+              <option key={st.value} value={st.value}>
+                {st.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Размер шрифта
+          </label>
+          <select
+            value={fontSize}
+            onChange={(e) => setFontSize(e.target.value as any)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+          >
+            {FONT_SIZES.map((size) => (
+              <option key={size.value} value={size.value}>
+                {size.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* Дополнительные настройки */}
+      <div className="grid md:grid-cols-3 gap-6 mb-6">
+        <div className="flex items-center">
+          <input
+            type="checkbox"
+            id="includeAnswers"
+            checked={includeAnswers}
+            onChange={(e) => setIncludeAnswers(e.target.checked)}
+            className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+          />
+          <label htmlFor="includeAnswers" className="ml-2 text-sm text-gray-700">
+            Включить ответы
+          </label>
+        </div>
+
+        <div className="flex items-center">
+          <input
+            type="checkbox"
+            id="showNumbers"
+            checked={showNumbers}
+            onChange={(e) => setShowNumbers(e.target.checked)}
+            className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+          />
+          <label htmlFor="showNumbers" className="ml-2 text-sm text-gray-700">
+            Показать номера
+          </label>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Плотность сетки
+          </label>
+          <input
+            type="range"
+            min="0.1"
+            max="0.3"
+            step="0.05"
+            value={blackSquareRatio}
+            onChange={(e) => setBlackSquareRatio(parseFloat(e.target.value))}
+            className="w-full"
+          />
+          <div className="text-xs text-gray-500 mt-1">
+            {Math.round(blackSquareRatio * 100)}% черных клеток
+          </div>
+        </div>
+      </div>
+
+      {/* Кнопка генерации */}
+      <div className="text-center">
+        <button
+          onClick={handleGenerate}
+          disabled={isGenerating || words.length < 5}
+          className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-lg font-semibold"
+        >
+          {isGenerating ? (
+            <>
+              <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Создание кроссворда...
+            </>
+          ) : (
+            '🧩 Создать кроссворд'
+          )}
+        </button>
+      </div>
     </div>
   )
 }

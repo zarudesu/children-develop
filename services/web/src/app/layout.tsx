@@ -1,6 +1,7 @@
 import './globals.css'
 import type { Metadata } from 'next'
-import Navigation from '../components/Navigation'
+import { AuthProvider } from '../contexts/AuthContext'
+import { Header } from '../components/Header'
 import { FooterStats } from '../components/FooterStats'
 
 export const metadata: Metadata = {
@@ -17,11 +18,12 @@ export default function RootLayout({
   return (
     <html lang="ru" className="light" style={{colorScheme: 'light'}}>
       <body className="min-h-screen font-sans antialiased bg-white text-gray-900">
-        <Navigation />
+        <AuthProvider>
+          <Header />
 
-        <main className="flex-1">
-          {children}
-        </main>
+          <main className="flex-1">
+            {children}
+          </main>
         
         <footer className="bg-white border-t">
           <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
@@ -41,6 +43,7 @@ export default function RootLayout({
             </div>
           </div>
         </footer>
+        </AuthProvider>
       </body>
     </html>
   )
