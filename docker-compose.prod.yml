@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  childdev-web:
+    build:
+      context: ./services/web
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: production
+    container_name: childdev-web
+    ports:
+      - "3002:3000"
+    environment:
+      - NODE_ENV=production
+      - PDF_SERVICE_URL=http://childdev-pdf:3001
+      - NEXT_TELEMETRY_DISABLED=1
+    networks:
+      - childdev-network
+    depends_on:
+      - childdev-pdf
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  childdev-pdf:
+    build:
+      context: ./services/pdf
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: production
+    container_name: childdev-pdf
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+    networks:
+      - childdev-network
+    restart: unless-stopped
+    shm_size: 1gb
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+networks:
+  childdev-network:
+    driver: bridge
+
+volumes:
+  childdev-data:
+    driver: local
