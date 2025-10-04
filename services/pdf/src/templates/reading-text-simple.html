@@ -14,28 +14,42 @@
             font-display: swap;
         }
 
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: {{fontFamily fontFamily}};
-            padding: 2cm;
-            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
         }
+
         .title {
             font-size: 18pt;
             font-weight: bold;
             text-align: center;
-            margin-bottom: 20px;
+            margin: 15px 0;
+            padding: 0 20px;
         }
+
         .exercise-text {
             font-size: {{fontSize fontSize}};
             line-height: 1.8;
-            padding: 20px;
-            border: 1px solid #ccc;
-            margin: 20px 0;
-        }
-        .metadata {
-            font-size: 10pt;
-            color: #666;
-            margin-bottom: 20px;
+            padding: 30px;
+            border: 3px solid #333;
+            margin: 15px;
+            height: calc(100vh - 30px);
+            box-sizing: border-box;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-all;
+            hyphens: none;
+            overflow-y: auto;
         }
 
         /* CSS-методы обрезания текста для техники чтения */
@@ -90,12 +104,13 @@
             position: relative;
             display: inline-block;
             vertical-align: baseline;
+            overflow: hidden;
         }
 
-        .bottom-cut-pseudo:before {
+        .bottom-cut-pseudo::after {
             content: '';
             position: absolute;
-            top: 0;
+            bottom: 0;
             left: 0;
             right: 0;
             height: 60%;
@@ -160,6 +175,13 @@
             transform: scaleX(-1);
             display: inline-block;
         }
+
+        /* Специальное правило для слитного текста - добавляет возможность переноса после каждой буквы */
+        .merged-text {
+            word-break: break-all;
+            overflow-wrap: anywhere;
+            hyphens: none;
+        }
     </style>
 </head>
 <body>
@@ -167,63 +189,11 @@
     <div class="title">{{title}}</div>
     {{/if}}
 
-    <div class="metadata">
-        <p>Тип: {{type}} | Слов: {{metadata.wordsCount}} | Сложность: {{metadata.difficulty}}</p>
-    </div>
 
     <div class="exercise-text">
         {{{transformedText}}}
     </div>
 
-    <!-- ТЕСТ ВСЕХ МЕТОДОВ ОБРЕЗАНИЯ -->
-    {{#if type}}
-    <div style="margin: 30px 0; padding: 20px; border: 2px solid #007acc;">
-        <h3 style="color: #007acc; margin-bottom: 15px;">ТЕСТ ВСЕХ МЕТОДОВ ОБРЕЗАНИЯ (нижняя часть):</h3>
-
-        <div style="margin: 10px 0;">
-            <strong>Метод 2 (clip-path):</strong>
-            <span class="bottom-cut-clippath">Солнце ярко светило над зеленым лугом</span>
-        </div>
-
-        <div style="margin: 10px 0;">
-            <strong>Метод 4 (псевдоэлемент):</strong>
-            <span class="bottom-cut-pseudo">Солнце ярко светило над зеленым лугом</span>
-        </div>
-
-        <div style="margin: 10px 0;">
-            <strong>Метод 5 (CSS mask):</strong>
-            <span class="bottom-cut-mask">Солнце ярко светило над зеленым лугом</span>
-        </div>
-
-        <div style="margin: 10px 0;">
-            <strong>Основной метод (переменные):</strong>
-            <span class="bottom-cut" style="--cut-percentage: 60%">Солнце ярко светило над зеленым лугом</span>
-        </div>
-    </div>
-    {{/if}}
-
-        <h3 style="color: #ff6b6b; margin-bottom: 15px;">ТЕСТ ВСЕХ МЕТОДОВ ОБРЕЗАНИЯ (верхняя часть):</h3>
-
-        <div style="margin: 10px 0;">
-            <strong>Метод 2 (clip-path):</strong>
-            <span class="top-cut-clippath">Солнце ярко светило над зеленым лугом</span>
-        </div>
-
-        <div style="margin: 10px 0;">
-            <strong>Метод 4 (псевдоэлемент):</strong>
-            <span class="top-cut-pseudo">Солнце ярко светило над зеленым лугом</span>
-        </div>
-
-        <div style="margin: 10px 0;">
-            <strong>Метод 5 (CSS mask):</strong>
-            <span class="top-cut-mask">Солнце ярко светило над зеленым лугом</span>
-        </div>
-
-        <div style="margin: 10px 0;">
-            <strong>Основной метод (переменные):</strong>
-            <span class="top-cut" style="--cut-percentage: 40%">Солнце ярко светило над зеленым лугом</span>
-        </div>
-    </div>
 
     {{#if originalText}}
     <div style="page-break-before: always;">

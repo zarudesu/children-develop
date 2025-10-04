@@ -15,6 +15,30 @@ interface TransformationOptions {
   keepFirstLast?: boolean
   mixedMode?: 'sentence' | 'word'
   textCase?: TextCase
+  // Для умного переноса слитного текста
+  fontFamily?: string
+  fontSize?: string
+  containerWidth?: number  // ширина контейнера в px
+}
+
+// Приблизительная ширина символов для разных шрифтов (в px при базовом размере 14px)
+const FONT_CHAR_WIDTHS = {
+  'serif': 8.5,           // Times New Roman
+  'sans-serif': 8.2,      // Arial
+  'mono': 8.4,            // Courier New
+  'cursive': 9.1,         // Comic Sans MS
+  'propisi': 9.5          // Propisi (wider)
+}
+
+// Размеры шрифтов из PDF settings
+const FONT_SIZES = {
+  'tiny': 10,
+  'small': 12,
+  'medium': 14,
+  'large': 18,
+  'extra-large': 24,
+  'huge': 32,
+  'super-huge': 40
 }
 
 export class TextTransformer {
@@ -59,7 +83,7 @@ export class TextTransformer {
         break
 
       case 'merged-text':
-        result = this.mergedText(result)
+        result = this.mergedText(result, options)
         break
 
       case 'extra-letters':
@@ -181,10 +205,72 @@ export class TextTransformer {
   /**
    * 8. Слитный текст
    */
-  private static mergedText(text: string): string {
-    // Удаляем пробелы, но сохраняем знаки препинания
-    return text.replace(/\s+/g, '')
+  private static mergedText(text: string, options: TransformationOptions = {}): string {
+    // Если есть данные для умного переноса - используем их
+    if (options.fontFamily && options.fontSize && options.containerWidth) {
+      return this.wrapTextWithSmartBreaks(text, options);
+    }
+
+    // Иначе удаляем пробелы и используем CSS метод
+    const mergedText = text.replace(/\s+/g, '');
+    return `<span class="merged-text">${mergedText}</span>`;
   }
+
+  /**
+   * Умный перенос текста с учетом шрифта и размера
+   */
+  private static wrapTextWithSmartBreaks(
+    text: string,
+    options: TransformationOptions
+  ): string {
+    const fontFamily = options.fontFamily || 'sans-serif';
+    const fontSize = options.fontSize || 'medium';
+    const containerWidth = options.containerWidth || 600; // ширина по умолчанию
+
+    // Получаем ширину символа для данного шрифта
+    const baseCharWidth = FONT_CHAR_WIDTHS[fontFamily as keyof typeof FONT_CHAR_WIDTHS] || 8.2;
+    const fontSizePx = FONT_SIZES[fontSize as keyof typeof FONT_SIZES] || 14;
+
+    // Масштабируем ширину символа под размер шрифта
+    const charWidth = baseCharWidth * (fontSizePx / 14);
+
+    // Вычисляем сколько символов помещается в строку (с небольшим запасом)
+    const maxCharsPerLine = Math.floor((containerWidth - 60) / charWidth); // 60px запас на padding/border
+
+    // Сначала извлекаем слова из исходного текста (с пробелами)
+    const words = text.split(/(\s+|[.,!?;:])/);
+    const cleanWords = words.filter(word => !/^\s+$/.test(word) && word.length > 0);
+
+    // Склеиваем слова в одну строку (убираем пробелы)
+    const mergedText = cleanWords.join('');
+
+    if (maxCharsPerLine <= 0 || mergedText.length <= maxCharsPerLine) {
+      return mergedText; // не нужно переносить
+    }
+
+    // Теперь разбиваем склеенный текст по границам исходных слов
+    const lines: string[] = [];
+    let currentLine = '';
+    let charIndex = 0;
+
+    for (const word of cleanWords) {
+      // Если добавление слова превышает лимит - начинаем новую строку
+      if (currentLine.length + word.length > maxCharsPerLine && currentLine.length > 0) {
+        lines.push(currentLine);
+        currentLine = word;
+      } else {
+        currentLine += word;
+      }
+    }
+
+    // Добавляем последнюю строку
+    if (currentLine.length > 0) {
+      lines.push(currentLine);
+    }
+
+    return lines.join('<br>');
+  }
+
 
   /**
    * 9. Текст с дополнительными буквами

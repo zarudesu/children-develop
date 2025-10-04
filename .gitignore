@@ -101,3 +101,9 @@ infra/deploy/*.pub
 infra/deploy/*.key
 infra/deploy/.ssh/
 infra/deploy/secrets/
+
+# Production credentials - NEVER COMMIT!
+DEPLOYMENT_CREDENTIALS.md
+*.pem
+*_rsa
+*_ed25519

@@ -26,6 +26,79 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Коммуникации:** web → pdf (обязательно), web → api (опционально), pdf → S3 (если сохраняем файлы)
 
+## Deployment Infrastructure
+
+### Production VPS: children.hhivp.com
+- **Host**: children.hhivp.com (45.10.53.247)
+- **User**: chhh
+- **OS**: Ubuntu 24.04.3 LTS
+- **RAM**: 7.7GB total, 7.1GB available
+- **Swap**: 4.0GB
+- **Storage**: 24GB (~15GB available)
+
+### SSH Access
+Локальные SSH ключи созданы и настроены:
+```bash
+# SSH конфигурация (в ~/.ssh/config)
+Host children-vps
+    HostName children.hhivp.com
+    User chhh
+    IdentityFile ~/.ssh/childdev_vps
+    Port 22
+    StrictHostKeyChecking no
+    UserKnownHostsFile /dev/null
+
+# Подключение к серверу
+ssh children-vps
+```
+
+### Deployment Status
+- ✅ SSH ключи настроены и работают
+- ✅ Сервер доступен (Ubuntu 24.04.3, 7.7GB RAM, 4GB swap)
+- ✅ Docker установлен (v27.5.1 + docker-compose v1.29.2)
+- ✅ Репозиторий склонирован с GitHub
+- ✅ Production Docker Compose конфигурация создана
+- 🔄 Docker образы собираются на сервере
+- ⏳ ChildDev приложение запускается
+
+### Production Environment
+**⚠️ ЧУВСТВИТЕЛЬНАЯ ИНФОРМАЦИЯ - НЕ КОММИТИТЬ В GIT!**
+
+```bash
+# Доступы к production серверу children.hhivp.com:
+Server: children.hhivp.com (45.10.53.247)
+User: chhh
+Password: ITSLch25
+
+# SSH подключение:
+ssh children-vps
+
+# Docker команды:
+cd /home/chhh/childdev-cl
+docker-compose -f docker-compose.prod.yml up -d
+docker-compose -f docker-compose.prod.yml logs -f
+
+# Проверка сервисов:
+curl http://children.hhivp.com:3002  # Web service
+curl http://children.hhivp.com:3001/health  # PDF service
+
+# Перезапуск:
+docker-compose -f docker-compose.prod.yml restart
+```
+
+### Deployment Commands
+```bash
+# Обновление приложения:
+ssh children-vps "cd childdev-cl && git pull && docker-compose -f docker-compose.prod.yml restart"
+
+# Просмотр логов:
+ssh children-vps "cd childdev-cl && docker-compose -f docker-compose.prod.yml logs -f"
+
+# Остановка/запуск:
+ssh children-vps "cd childdev-cl && docker-compose -f docker-compose.prod.yml down"
+ssh children-vps "cd childdev-cl && docker-compose -f docker-compose.prod.yml up -d"
+```
+
 ## Детали генераторов
 
 ### Конструктор текстов для чтения

@@ -96,19 +96,35 @@ export function validateRequest(body: any): ValidationResult {
 
 // Схема для параметров reading-text
 const ReadingTextParamsSchema = z.object({
-  textType: z.enum([
-    'normal',
-    'bottom-cut',
-    'top-cut',
-    'missing-endings',
-    'missing-vowels',
-    'partial-reversed',
-    'scrambled-words',
-    'merged-text',
-    'extra-letters',
-    'mirror-text',
-    'mixed-types',
-    'word-ladder'
+  textType: z.union([
+    z.enum([
+      'normal',
+      'bottom-cut',
+      'top-cut',
+      'missing-endings',
+      'missing-vowels',
+      'partial-reversed',
+      'scrambled-words',
+      'merged-text',
+      'extra-letters',
+      'mirror-text',
+      'mixed-types',
+      'word-ladder'
+    ]),
+    z.array(z.enum([
+      'normal',
+      'bottom-cut',
+      'top-cut',
+      'missing-endings',
+      'missing-vowels',
+      'partial-reversed',
+      'scrambled-words',
+      'merged-text',
+      'extra-letters',
+      'mirror-text',
+      'mixed-types',
+      'word-ladder'
+    ])).min(1).max(12)
   ]),
   inputText: z.string()
     .min(10, 'Text must be at least 10 characters')
