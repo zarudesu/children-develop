@@ -59,24 +59,33 @@ docker stop childdev-web childdev-pdf
 docker rm childdev-web childdev-pdf
 ```
 
-#### 5. Start New Containers
+#### 5. Create Docker Network (First Time Only)
 ```bash
-# Start web service
-docker run -d \
-  --name childdev-web \
-  -p 3002:3002 \
-  --restart unless-stopped \
-  childdev-web
+# Create network for service communication
+docker network create childdev-network
+```
 
-# Start PDF service
+#### 6. Start New Containers
+```bash
+# Start PDF service first
 docker run -d \
   --name childdev-pdf \
+  --network childdev-network \
   -p 3001:3001 \
   --restart unless-stopped \
   childdev-pdf
+
+# Start web service with PDF service connection
+docker run -d \
+  --name childdev-web \
+  --network childdev-network \
+  -p 3002:3002 \
+  -e PDF_SERVICE_URL=http://childdev-pdf:3001 \
+  --restart unless-stopped \
+  childdev-web
 ```
 
-#### 6. Verify Deployment
+#### 7. Verify Deployment
 ```bash
 # Check container status
 docker ps
