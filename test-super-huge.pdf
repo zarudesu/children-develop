@@ -1,1 +1,0 @@
-{"error":"Validation failed","message":"Validation error: fontSize - Invalid enum value. Expected 'huge' | 'extra-large' | 'large' | 'medium' | 'small' | 'tiny', received 'super-huge'"}
