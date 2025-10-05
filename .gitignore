@@ -107,3 +107,23 @@ DEPLOYMENT_CREDENTIALS.md
 *.pem
 *_rsa
 *_ed25519
+
+# Production deployment logs
+pdf-build.log
+deploy-*.log
+production-*.log
+
+# Server configuration backups
+nginx-backup/
+ssl-backup/
+
+# Testing and debug artifacts
+test-*.pdf
+test-*.html
+debug-*.html
+debug-*.pdf
+
+# Temporary build files
+services/*/dist/
+services/*/.next/
+services/*/build/
