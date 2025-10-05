@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { CrosswordSize, CrosswordDifficulty, CrosswordStyle } from '../types'
+import { CrosswordDifficulty, CrosswordStyle } from '../types'
 
 // Схема для одного слова кроссворда
 export const crosswordWordSchema = z.object({
