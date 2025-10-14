@@ -267,8 +267,26 @@
   .no-print {
     display: none !important;
   }
-  
+
   .card {
     @apply shadow-none border border-gray-300;
   }
+}
+
+/* Стили для предварительного просмотра трансформаций текста */
+.bottom-cut-preview {
+  display: inline-block;
+  clip-path: polygon(0% 60%, 100% 60%, 100% 100%, 0% 100%);
+  vertical-align: baseline;
+}
+
+.top-cut-preview {
+  display: inline-block;
+  clip-path: polygon(0% 0%, 100% 0%, 100% 40%, 0% 40%);
+  vertical-align: baseline;
+}
+
+.mirror-text-preview {
+  transform: scaleX(-1);
+  display: inline-block;
 }

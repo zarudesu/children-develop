@@ -28,11 +28,11 @@ function transformText(text: string, type: string, options: any = {}): string {
 
     case 'missing-endings':
       const endingLength = options.endingLength || 2
-      const words = text.split(/(\s+|[.,!?;:])/)
+      const endingWords = text.split(/(\s+|[.,!?;:])/)
 
       // Обрабатываем только кириллические слова - каждое второе
       let wordIndex = 0
-      return words.map((part) => {
+      return endingWords.map((part) => {
         // Проверяем, является ли часть словом (кириллица)
         if (/^[а-яё]+$/i.test(part) && part.length > endingLength + 1) {
           wordIndex++
@@ -41,7 +41,7 @@ function transformText(text: string, type: string, options: any = {}): string {
           if (shouldProcess) {
             const truncated = part.slice(0, -endingLength)
             const underscores = '_'.repeat(endingLength)
-            return truncated + underscores
+            return `<span class="missing-letters-spacing">${truncated + underscores}</span>`
           }
         }
 
@@ -49,7 +49,8 @@ function transformText(text: string, type: string, options: any = {}): string {
       }).join('')
 
     case 'missing-vowels':
-      return text.replace(/[аеёиоуыэюя]/gi, '_')
+      const vowelText = text.replace(/[аеёиоуыэюя]/gi, '_')
+      return `<span class="missing-letters-spacing">${vowelText}</span>`
 
     case 'partial-reversed':
       const reversedWordCount = options.reversedWordCount || 2
@@ -109,24 +110,17 @@ function transformText(text: string, type: string, options: any = {}): string {
       return result.join('')
 
     case 'mirror-text':
-      // Разбиваем текст на предложения и переворачиваем каждое по буквам
-      const sentences = text.split(/([.!?]+)/).filter(s => s.trim() || /[.!?]/.test(s))
-      const mirroredSentences: string[] = []
+      // Создаем зеркальное отображение текста - переворачиваем каждое слово по буквам
+      const mirrorWords = text.split(/(\s+|[.,!?;:])/)
 
-      for (let i = 0; i < sentences.length; i += 2) {
-        const sentence = sentences[i]
-        const punctuation = sentences[i + 1] || ''
-
-        if (sentence && sentence.trim()) {
-          // Переворачиваем предложение по буквам, сохраняя регистр на исходных позициях
-          const reversed = sentence.trim().split('').reverse().join('')
-          mirroredSentences.push(reversed + punctuation)
-        } else if (punctuation) {
-          mirroredSentences.push(punctuation)
+      return mirrorWords.map(part => {
+        // Если это слово (кириллица), переворачиваем его и добавляем CSS для зеркального отображения
+        if (/^[а-яё]+$/i.test(part) && part.length > 0) {
+          const reversed = part.split('').reverse().join('')
+          return `<span class="mirror-text">${reversed}</span>`
         }
-      }
-
-      return mirroredSentences.join(' ')
+        return part // оставляем пробелы и знаки препинания как есть
+      }).join('')
 
     case 'mixed-types':
       const mode = options.mixedMode || 'sentence'
@@ -562,7 +556,7 @@ export function generateReadingTextHTML(params: ReadingTextParams): string {
     'missing-endings': 'Текст без окончаний',
     'missing-vowels': 'Текст без гласных букв',
     'partial-reversed': 'Текст с перевернутыми словами',
-    'scrambled-words': 'Анаграммы',
+    'scrambled-words': 'Перепутанные слова',
     'merged-text': 'Слитный текст',
     'extra-letters': 'Текст с лишними буквами',
     'mirror-text': 'Зеркальный текст',
@@ -1112,29 +1106,8 @@ function generateCSSBasedMultiPageHTML(params: ReadingTextParams, typeNames: Rec
 
     return `
     <div class="exercise-page">
-      <div class="page-header">
-        <h1 class="brand-title">СКОРОЧТЕНИЕ</h1>
-        <div class="page-number">${pageNumber}</div>
-      </div>
-
-      <div class="exercise-title">${typeInfo}</div>
-
-      ${isFirstPage ? `
-      <div class="source-text">
-        <div class="source-label">Прочитай исходный текст</div>
-        ${params.inputText}
-      </div>
-      ` : ''}
-
       <div class="exercise-content">
         ${transformedText}
-      </div>
-
-      <div class="page-footer">
-        <div class="footer-brand">
-          <div class="footer-logo">R</div>
-          <span>Развитие ребёнка</span>
-        </div>
       </div>
     </div>`
   }).join('\n')
@@ -1224,105 +1197,34 @@ function getCSSBasedStyles(fontSize: string = 'medium', fontFamily: string = 'sa
       page-break-after: avoid;
     }
 
-    /* Хедер */
-    .page-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 15px;
-      padding-bottom: 10px;
-      border-bottom: 2px solid #333;
-    }
+    /* Убираем хедер и заголовки для чистого дизайна */
 
-    .brand-title {
-      font-size: 36px;
-      font-weight: bold;
-      color: #2c3e50;
-      letter-spacing: -1px;
-    }
-
-    .page-number {
-      font-size: 48px;
-      font-weight: 300;
-      color: #95a5a6;
-    }
-
-    /* Подзаголовок упражнения */
-    .exercise-title {
-      font-size: 18px;
-      color: #34495e;
-      margin-bottom: 10px;
-      padding-bottom: 5px;
-      border-bottom: 1px solid #34495e;
-      font-weight: 500;
-    }
-
-    /* Исходный текст (только на первой странице) */
-    .source-text {
-      font-family: 'Arial', 'Helvetica', sans-serif !important;
-      font-size: 14px !important;
-      line-height: 1.6;
-      margin-bottom: 15px;
-      padding: 15px;
-      border: 2px solid #bdc3c7;
-      border-radius: 4px;
-      background: #ecf0f1;
-    }
-
-    .source-label {
-      font-weight: bold;
-      margin-bottom: 10px;
-      color: #34495e;
-    }
-
-    /* Контент упражнения */
+    /* Контент упражнения - убираем рамки */
     .exercise-content {
       font-size: ${fontSizeMap[fontSize] || '14px'};
       line-height: ${getLineHeight(fontSize)};
       flex-grow: 1;
-      padding: 15px;
-      border: 3px solid #333;
-      border-radius: 4px;
+      padding: 0;
       margin: 0;
       box-sizing: border-box;
       word-wrap: break-word;
       overflow-wrap: break-word;
-      word-break: break-all;
+
+      /* Убираем принудительные переносы - используем целые слова */
+      word-break: normal;
+      hyphens: none;
+
+      /* Увеличиваем межстрочный интервал для лучшей читаемости */
+      line-height: 2.0;
 
       /* CSS для предотвращения переполнения */
       max-height: none;
       overflow: visible;
     }
 
-    /* Футер */
-    .page-footer {
-      margin-top: auto;
-      padding-top: 10px;
-      border-top: 1px solid #bdc3c7;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .footer-brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      color: #7f8c8d;
-      font-size: 12px;
-    }
-
-    .footer-logo {
-      width: 24px;
-      height: 24px;
-      background: linear-gradient(135deg, #3498db, #2980b9);
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-weight: bold;
-      font-size: 14px;
+    /* Дополнительные отступы между словами для вариантов с пропущенными буквами */
+    .missing-letters-spacing {
+      word-spacing: 1em;
     }
 
     /* Специальные стили для упражнений */

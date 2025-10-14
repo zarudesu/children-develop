@@ -11,6 +11,7 @@ import {
   FONT_SIZE_SETTINGS,
   FONT_FAMILY_SETTINGS
 } from '../types'
+import { generatePreviewText, getTransformationDescription } from '../utils/previewGenerator'
 
 interface ReadingTextGeneratorProps {
   onGenerate?: (params: ReadingTextParams) => void
@@ -227,13 +228,16 @@ export default function ReadingTextGenerator({
 
                     return (
                       <div key={type} className="relative">
-                        <label className={`
-                          inline-flex items-center px-3 py-2 text-xs font-medium border rounded-full cursor-pointer transition-all
-                          ${isSelected
-                            ? 'bg-blue-100 border-blue-300 text-blue-800 shadow-sm'
-                            : `bg-white ${difficultyColor} hover:shadow-sm`
-                          }
-                        `}>
+                        <label
+                          className={`
+                            relative group inline-flex items-center px-3 py-2 text-xs font-medium border rounded-full cursor-pointer transition-all
+                            ${isSelected
+                              ? 'bg-blue-100 border-blue-300 text-blue-800 shadow-sm'
+                              : `bg-white ${difficultyColor} hover:shadow-sm`
+                            }
+                          `}
+                          title={`${info.description} • ${info.purpose}`}
+                        >
                           <input
                             type="checkbox"
                             checked={isSelected}
@@ -246,6 +250,14 @@ export default function ReadingTextGenerator({
                           }`}></span>
                           {info.name}
                           {isSelected && <span className="ml-1">✓</span>}
+
+                          {/* Тултип с описанием */}
+                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 p-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
+                            <div className="font-semibold mb-1">{info.name}</div>
+                            <div className="text-gray-300 mb-1">{info.description}</div>
+                            <div className="text-blue-300 text-xs">📚 {info.purpose}</div>
+                            <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                          </div>
                         </label>
                       </div>
                     )
@@ -266,12 +278,20 @@ export default function ReadingTextGenerator({
                     {selectedTypes.filter(type => type !== 'normal').map(type => (
                       <div key={type} className="bg-white p-3 rounded-md border border-gray-200">
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-medium text-gray-800">
-                            {TEXT_TYPE_DESCRIPTIONS[type].name}
-                          </span>
+                          <div className="flex-1">
+                            <span className="text-sm font-medium text-gray-800">
+                              {TEXT_TYPE_DESCRIPTIONS[type].name}
+                            </span>
+                            <div className="text-xs text-gray-600 mt-1">
+                              {TEXT_TYPE_DESCRIPTIONS[type].description}
+                            </div>
+                            <div className="text-xs text-blue-600 mt-1">
+                              📚 {TEXT_TYPE_DESCRIPTIONS[type].purpose}
+                            </div>
+                          </div>
                           <button
                             onClick={() => handleTypeToggle(type)}
-                            className="text-xs text-red-600 hover:text-red-800"
+                            className="text-xs text-red-600 hover:text-red-800 ml-3"
                           >
                             Убрать
                           </button>
@@ -492,31 +512,6 @@ export default function ReadingTextGenerator({
                   </div>
                 </div>
 
-                {/* Регистр текста */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Регистр букв
-                  </label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {[
-                      { value: 'upper', label: 'ЗАГЛАВНЫЕ' },
-                      { value: 'lower', label: 'строчные' },
-                      { value: 'mixed', label: 'Смешанный' }
-                    ].map((option) => (
-                      <button
-                        key={option.value}
-                        onClick={() => handleParamChange('textCase', option.value as TextCase)}
-                        className={`p-2 text-center border rounded-md transition-colors ${
-                          params.textCase === option.value
-                            ? 'bg-blue-500 text-white border-blue-500'
-                            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                        }`}
-                      >
-                        {option.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
 
                 {/* Превью типографики */}
                 <div className="p-4 bg-gray-50 rounded-lg border">
@@ -530,9 +525,14 @@ export default function ReadingTextGenerator({
                       lineHeight: FONT_SIZE_SETTINGS[params.fontSize].lineHeight,
                       fontFamily: FONT_FAMILY_SETTINGS[params.fontFamily].cssFamily
                     }}
-                  >
-                    Пример текста для чтения: Солнце ярко светило над зеленым лугом.
-                  </div>
+                    dangerouslySetInnerHTML={{
+                      __html: generatePreviewText(
+                        params.inputText || 'Введите текст для предварительного просмотра...',
+                        params.textType,
+                        params.textCase
+                      )
+                    }}
+                  />
                   <div className="text-xs text-gray-500 mt-1">
                     CSS: font-family: {FONT_FAMILY_SETTINGS[params.fontFamily].cssFamily}; font-size: {FONT_SIZE_SETTINGS[params.fontSize].cssSize};
                   </div>
