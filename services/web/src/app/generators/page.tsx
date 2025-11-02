@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { GeneratorCard } from '../components/GeneratorCard'
+import { GeneratorCard } from '../../components/GeneratorCard'
 
 export default function GeneratorsPage() {
   return (
@@ -148,7 +148,7 @@ export default function GeneratorsPage() {
               title="Прописи"
               description="Генерация листов для тренировки письма букв, слов и предложений."
               icon="✍️"
-              href="#"
+              href="/handwriting"
               difficulty={['Буквы', 'Слоги', 'Слова']}
               ageGroups={['4-6 лет', '7-8 лет']}
               features={[
@@ -157,7 +157,7 @@ export default function GeneratorsPage() {
                 'Пошаговые инструкции',
                 'Контроль наклона'
               ]}
-              isComingSoon={true}
+              isNew={true}
             />
 
             {/* Лабиринты */}
