@@ -19,7 +19,16 @@ export type ReadingTextType =
   | 'mixed-types'         // 11. Смешанный тип ("сборная солянка")
   | 'word-ladder'         // 12. Лесенка из слов
 
-export type GeneratorType = 'filword' | 'reading-text' | 'crossword'
+// Типы строк для прописей
+export type HandwritingLineType = 'narrow-with-diagonal' | 'narrow-simple' | 'regular'
+
+// Размеры шрифта для прописей
+export type HandwritingFontSize = 'medium' | 'large'
+
+// Стиль текста для прописей
+export type HandwritingTextStyle = 'solid-gray' | 'dashed-gray'
+
+export type GeneratorType = 'filword' | 'reading-text' | 'crossword' | 'copy-text' | 'handwriting'
 
 export interface FilwordParams {
   words: string[]
@@ -134,9 +143,44 @@ export interface CrosswordParams {
   blackSquareRatio: number
 }
 
+// Типы для списывания текста по образцу
+export type CopyTextStyle = 'printed' | 'handwritten'
+export type CopyTextFontSize = 'medium' | 'large' | 'extra-large'
+export type CopyTextLineSpacing = '1.25' | '1.5' | '1.75'
+
+export interface CopyTextParams {
+  inputText: string
+  style: CopyTextStyle
+  fontSize: CopyTextFontSize
+  lineSpacing: CopyTextLineSpacing
+  centerTitle: boolean
+  preserveParagraphs: boolean
+  allowWordBreaks: boolean
+  includeExerciseInstructions: boolean
+  title?: string
+}
+
+export interface CopyTextTemplateData {
+  inputText: string
+  style: CopyTextStyle
+  fontSize: CopyTextFontSize
+  lineSpacing: CopyTextLineSpacing
+  centerTitle: boolean
+  preserveParagraphs: boolean
+  allowWordBreaks: boolean
+  includeInstructions: boolean
+  title?: string
+  instructions: string
+  metadata: {
+    wordCount: number
+    characterCount: number
+    estimatedTime: number
+  }
+}
+
 export interface GenerateRequest {
   type: GeneratorType
-  params: FilwordParams | ReadingTextParams | CrosswordParams
+  params: FilwordParams | ReadingTextParams | CrosswordParams | CopyTextParams
 }
 
 export interface TemplateData {
@@ -306,5 +350,35 @@ export const FONT_FAMILY_SETTINGS: Record<FontFamily, {
     name: 'Пропись',
     description: 'Шрифт для обучения письму',
     cssFamily: '"Propisi Regular", "Comic Sans MS", cursive'
+  }
+}
+
+// Интерфейсы для конструктора прописей
+export interface HandwritingParams {
+  inputText: string
+  title?: string
+  centerTitle?: boolean
+  lineType: HandwritingLineType
+  fontSize: HandwritingFontSize
+  textStyle: HandwritingTextStyle
+  preserveParagraphs?: boolean
+  includeInstructions?: boolean
+}
+
+export interface HandwritingTemplateData {
+  title: string
+  inputText: string
+  lineType: HandwritingLineType
+  fontSize: HandwritingFontSize
+  textStyle: HandwritingTextStyle
+  centerTitle: boolean
+  preserveParagraphs: boolean
+  includeInstructions: boolean
+  instructions?: string
+  textLines: Array<{text?: string, isEmpty?: boolean, isBreak?: boolean}>
+  metadata: {
+    wordCount: number
+    characterCount: number
+    estimatedTime: number
   }
 }

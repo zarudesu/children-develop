@@ -2,9 +2,12 @@ import { chromium, Browser, BrowserContext } from 'playwright'
 import { readFileSync } from 'fs'
 import { join } from 'path'
 import Handlebars from 'handlebars'
-import { FilwordParams, TemplateData, GenerateRequest, ReadingTextParams, ReadingTextTemplateData, TEXT_TYPE_DESCRIPTIONS, FONT_FAMILY_SETTINGS, CrosswordParams, ReadingTextType } from '../types'
+import { FilwordParams, TemplateData, GenerateRequest, ReadingTextParams, ReadingTextTemplateData, TEXT_TYPE_DESCRIPTIONS, FONT_FAMILY_SETTINGS, CrosswordParams, ReadingTextType, CopyTextParams, CopyTextTemplateData, HandwritingParams } from '../types'
 import { FilwordEngine } from './filword-engine'
 import { CrosswordEngine } from './crossword-engine'
+import { CopyTextGenerator } from './copy-text-generator'
+import { ReadingTextGenerator } from './reading-text-generator'
+import { HandwritingGenerator } from './handwriting-generator'
 import { applyTextCase } from '../utils/text-utils'
 import { TextTransformer } from './text-transformer'
 
@@ -69,6 +72,10 @@ export async function generatePDF(request: GenerateRequest | FilwordParams): Pro
     return generateReadingTextPDF(requestData.params as ReadingTextParams)
   } else if (requestData.type === 'crossword') {
     return generateCrosswordPDF(requestData.params as CrosswordParams)
+  } else if (requestData.type === 'copy-text') {
+    return generateCopyTextPDF(requestData.params as CopyTextParams)
+  } else if (requestData.type === 'handwriting') {
+    return generateHandwritingPDF(requestData.params as HandwritingParams)
   } else {
     return generateFilwordPDF(requestData.params as FilwordParams)
   }
@@ -134,6 +141,10 @@ export async function generateHTML(request: GenerateRequest | FilwordParams): Pr
     return generateReadingTextHTML(requestData.params as ReadingTextParams)
   } else if (requestData.type === 'crossword') {
     return generateCrosswordHTML(requestData.params as CrosswordParams)
+  } else if (requestData.type === 'copy-text') {
+    return generateCopyTextHTML(requestData.params as CopyTextParams)
+  } else if (requestData.type === 'handwriting') {
+    return generateHandwritingHTML(requestData.params as HandwritingParams)
   } else {
     return generateFilwordHTML(requestData.params as FilwordParams)
   }
@@ -525,102 +536,8 @@ async function generateReadingTextPDF(params: ReadingTextParams): Promise<Buffer
 }
 
 async function generateReadingTextHTML(params: ReadingTextParams): Promise<string> {
-  try {
-    console.log(`Generating reading text HTML: ${params.textType}`)
-
-    // Определяем тип для работы с одиночным типом
-    const firstType = Array.isArray(params.textType) ? params.textType[0] : params.textType
-
-    // Трансформация текста
-    const transformedText = TextTransformer.transform(params.inputText, firstType, {
-      cutPercentage: params.cutPercentage,
-      endingLength: params.endingLength,
-      reversedWordCount: params.reversedWordCount,
-      extraLetterDensity: params.extraLetterDensity,
-      keepFirstLast: params.keepFirstLast,
-      mixedMode: params.mixedMode,
-      textCase: params.textCase
-    })
-
-    // Подсчет метаданных
-    const words = params.inputText.trim().split(/\s+/).filter(w => w.length > 0)
-    const typeInfo = TEXT_TYPE_DESCRIPTIONS[firstType]
-
-    // Загрузка шаблона
-    const templatesPath = process.env.NODE_ENV === 'production'
-      ? join(process.cwd(), 'templates')
-      : join(__dirname, '../templates')
-
-    const templateContent = readFileSync(join(templatesPath, 'reading-text-simple.html'), 'utf8')
-
-    // Регистрация простых Handlebars хелперов
-    if (!Handlebars.helpers.eq) {
-      Handlebars.registerHelper('eq', function(a: any, b: any) {
-        return a === b
-      })
-    }
-
-    // Хелпер для размера шрифта
-    if (!Handlebars.helpers.fontSize) {
-      Handlebars.registerHelper('fontSize', function(size: string) {
-        const fontSizes: Record<string, string> = {
-          'huge': '32px',
-          'extra-large': '24px',
-          'large': '18px',
-          'medium': '14px',
-          'small': '12px',
-          'tiny': '10px'
-        }
-        return fontSizes[size] || '14px'
-      })
-    }
-
-    // Хелпер для семейства шрифта
-    if (!Handlebars.helpers.fontFamily) {
-      Handlebars.registerHelper('fontFamily', function(family: string) {
-        const fontFamilies: Record<string, string> = {
-          'serif': '"Times New Roman", Times, serif',
-          'sans-serif': '"Arial", "Helvetica", sans-serif',
-          'mono': '"Courier New", Courier, monospace',
-          'cursive': '"Comic Sans MS", cursive',
-          'propisi': '"Kalam", "Comic Sans MS", cursive'
-        }
-        return fontFamilies[family] || '"Arial", "Helvetica", sans-serif'
-      })
-    }
-
-    const compiledTemplate = Handlebars.compile(templateContent)
-
-    // Подготовка данных для шаблона
-    const templateData: ReadingTextTemplateData = {
-      type: firstType,
-      title: params.title || 'Упражнение на технику чтения',
-      centerTitle: params.centerTitle !== false,
-      originalText: params.inputText,
-      transformedText,
-      fontSize: params.fontSize,
-      fontFamily: params.fontFamily || 'sans-serif',
-      pageNumbers: params.pageNumbers !== false,
-      includeInstructions: params.includeInstructions !== false,
-      instructions: params.customInstructions,
-      metadata: {
-        wordsCount: words.length,
-        charactersCount: params.inputText.length,
-        difficulty: typeInfo.difficulty
-      }
-    }
-
-    // Генерация HTML
-    const html = compiledTemplate(templateData)
-
-    console.log(`Reading text HTML generated successfully`)
-
-    return html
-
-  } catch (error) {
-    console.error('Reading text HTML generation failed:', error)
-    throw new Error(`HTML generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
-  }
+  const generator = new ReadingTextGenerator()
+  return generator.generateHTML(params)
 }
 
 async function generateFilwordHTML(params: FilwordParams): Promise<string> {
@@ -779,6 +696,32 @@ async function generateCrosswordHTML(params: CrosswordParams): Promise<string> {
     console.error('Crossword HTML generation failed:', error)
     throw new Error(`HTML generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
   }
+}
+
+// Генерация PDF для списывания текста
+async function generateCopyTextPDF(params: CopyTextParams): Promise<Buffer> {
+  const generator = new CopyTextGenerator()
+  const html = generator.generateHTML(params)
+  return await generatePDFFromHTML(html)
+}
+
+// Генерация HTML для списывания текста
+async function generateCopyTextHTML(params: CopyTextParams): Promise<string> {
+  const generator = new CopyTextGenerator()
+  return generator.generateHTML(params)
+}
+
+// Генерация PDF для прописей
+async function generateHandwritingPDF(params: HandwritingParams): Promise<Buffer> {
+  const generator = new HandwritingGenerator()
+  const html = generator.generateHTML(params)
+  return await generatePDFFromHTML(html)
+}
+
+// Генерация HTML для прописей
+async function generateHandwritingHTML(params: HandwritingParams): Promise<string> {
+  const generator = new HandwritingGenerator()
+  return generator.generateHTML(params)
 }
 
 // Функция для очистки ресурсов (можно вызывать периодически)

@@ -19,7 +19,8 @@ const navigationItems: NavigationItem[] = [
     submenu: [
       { label: 'Филворды', href: '/filword' },
       { label: 'Кроссворды', href: '/crossword' },
-      { label: 'Тексты для чтения', href: '/reading-text' }
+      { label: 'Тексты для чтения', href: '/reading-text' },
+      { label: 'Прописи', href: '/handwriting' }
     ]
   },
   {
@@ -92,6 +93,7 @@ export default function Navigation() {
                               {subItem.label === 'Филворды' && 'Словесные головоломки'}
                               {subItem.label === 'Кроссворды' && 'Классические кроссворды с определениями'}
                               {subItem.label === 'Тексты для чтения' && '12 типов упражнений для развития техники чтения'}
+                              {subItem.label === 'Прописи' && 'Упражнения для обучения письму'}
                             </div>
                           </Link>
                         ))}

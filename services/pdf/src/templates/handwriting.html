@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>{{title}}</title>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&family=Comfortaa:wght@300;400;700&display=swap');
+
+    @font-face {
+      font-family: 'Propisi';
+      src: url('/fonts/Propisi.TTF') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    body {
+      margin: 0;
+      padding: 1.5cm;
+      font-family: "Times New Roman", Times, serif;
+      color: #000;
+      background: white;
+      {{#if (eq fontSize 'medium')}}
+      font-size: 14pt;
+      {{else}}
+      font-size: 16pt;
+      {{/if}}
+    }
+
+    .page-container {
+      min-height: calc(100vh - 3cm);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      margin-bottom: 1cm;
+    }
+
+    .title {
+      font-size: 18pt;
+      font-weight: bold;
+      margin-bottom: 0.5cm;
+      {{#if centerTitle}}
+      text-align: center;
+      {{/if}}
+    }
+
+    .instructions {
+      font-size: 10pt;
+      color: #666;
+      margin-bottom: 1cm;
+      padding: 0.4cm;
+      border: 1px solid #ddd;
+      border-radius: 3px;
+      background: #f9f9f9;
+      white-space: pre-line;
+    }
+
+    .writing-content {
+      flex-grow: 1;
+    }
+
+    /* Строки для прописей */
+    .writing-line {
+      position: relative;
+      margin-bottom: 1.2cm;
+      {{#if (eq fontSize 'medium')}}
+      height: 1.5cm;
+      {{else}}
+      height: 1.8cm;
+      {{/if}}
+    }
+
+    /* Основные горизонтальные линии */
+    .writing-line::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 1px;
+      background: #333;
+    }
+
+    /* Верхняя линия для регулярных строк */
+    {{#if (eq lineType 'regular')}}
+    .writing-line::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 1px;
+      background: #999;
+    }
+    {{/if}}
+
+    /* Узкие строки с дополнительными линиями */
+    {{#if (eq lineType 'narrow-with-diagonal')}}
+    .writing-line {
+      background-image:
+        linear-gradient(to right, #999 0px, #999 1px, transparent 1px),
+        linear-gradient(90deg, transparent 49%, #ccc 49%, #ccc 51%, transparent 51%),
+        repeating-linear-gradient(
+          45deg,
+          transparent,
+          transparent 0.8cm,
+          #ddd 0.8cm,
+          #ddd calc(0.8cm + 1px)
+        );
+      background-position: 0 0, 0 50%, 0 0;
+      {{#if (eq fontSize 'medium')}}
+      background-size: 100% 1px, 100% 1px, 100% 100%;
+      {{else}}
+      background-size: 100% 1px, 100% 1px, 100% 100%;
+      {{/if}}
+    }
+    {{/if}}
+
+    {{#if (eq lineType 'narrow-simple')}}
+    .writing-line {
+      background-image:
+        linear-gradient(to right, #999 0px, #999 1px, transparent 1px),
+        linear-gradient(90deg, transparent 49%, #ccc 49%, #ccc 51%, transparent 51%);
+      background-position: 0 0, 0 50%;
+      background-size: 100% 1px, 100% 1px;
+    }
+    {{/if}}
+
+    /* Текст для обводки */
+    .trace-text {
+      position: absolute;
+      left: 0.5cm;
+      {{#if (eq lineType 'regular')}}
+      top: 0.2cm;
+      {{else}}
+      top: 0.1cm;
+      {{/if}}
+      {{#if (eq fontSize 'medium')}}
+      font-size: 12pt;
+      line-height: 1.2cm;
+      {{else}}
+      font-size: 14pt;
+      line-height: 1.4cm;
+      {{/if}}
+      {{#if (eq textStyle 'solid-gray')}}
+      color: #bbb;
+      {{else}}
+      color: transparent;
+      text-shadow:
+        0 0 0 #bbb,
+        1px 0 0 #bbb,
+        -1px 0 0 #bbb,
+        0 1px 0 #bbb,
+        0 -1px 0 #bbb;
+      background-image: repeating-linear-gradient(
+        90deg,
+        #bbb 0px,
+        #bbb 2px,
+        transparent 2px,
+        transparent 4px
+      );
+      background-clip: text;
+      -webkit-background-clip: text;
+      {{/if}}
+      font-family: "Propisi", "Kalam", "Comic Sans MS", cursive;
+      font-weight: normal;
+      letter-spacing: 1px;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    /* Пустые строки для письма */
+    .empty-line {
+      position: relative;
+      margin-bottom: 1.2cm;
+      {{#if (eq fontSize 'medium')}}
+      height: 1.5cm;
+      {{else}}
+      height: 1.8cm;
+      {{/if}}
+    }
+
+    .empty-line::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 1px;
+      background: #333;
+    }
+
+    {{#if (eq lineType 'regular')}}
+    .empty-line::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 1px;
+      background: #999;
+    }
+    {{/if}}
+
+    {{#if (eq lineType 'narrow-with-diagonal')}}
+    .empty-line {
+      background-image:
+        linear-gradient(to right, #999 0px, #999 1px, transparent 1px),
+        linear-gradient(90deg, transparent 49%, #ccc 49%, #ccc 51%, transparent 51%),
+        repeating-linear-gradient(
+          45deg,
+          transparent,
+          transparent 0.8cm,
+          #ddd 0.8cm,
+          #ddd calc(0.8cm + 1px)
+        );
+      background-position: 0 0, 0 50%, 0 0;
+      background-size: 100% 1px, 100% 1px, 100% 100%;
+    }
+    {{/if}}
+
+    {{#if (eq lineType 'narrow-simple')}}
+    .empty-line {
+      background-image:
+        linear-gradient(to right, #999 0px, #999 1px, transparent 1px),
+        linear-gradient(90deg, transparent 49%, #ccc 49%, #ccc 51%, transparent 51%);
+      background-position: 0 0, 0 50%;
+      background-size: 100% 1px, 100% 1px;
+    }
+    {{/if}}
+
+    .paragraph-break {
+      height: 0.8cm;
+    }
+
+    .metadata {
+      margin-top: 1cm;
+      font-size: 9pt;
+      color: #888;
+      border-top: 1px solid #ddd;
+      padding-top: 0.4cm;
+    }
+
+    .metadata-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.15cm;
+    }
+
+    /* Стили для печати */
+    @media print {
+      body {
+        padding: 1cm;
+      }
+
+      .metadata {
+        display: none;
+      }
+    }
+
+    @page {
+      size: A4;
+      margin: 1cm;
+    }
+  </style>
+</head>
+<body>
+  <div class="page-container">
+    <div class="header">
+      <div class="title">{{title}}</div>
+
+      {{#if includeInstructions}}
+      <div class="instructions">{{instructions}}</div>
+      {{/if}}
+    </div>
+
+    <div class="writing-content">
+      {{#each textLines}}
+        {{#if this.isEmpty}}
+          <div class="empty-line"></div>
+        {{else if this.isBreak}}
+          <div class="paragraph-break"></div>
+        {{else}}
+          <div class="writing-line">
+            <div class="trace-text">{{this.text}}</div>
+          </div>
+          <!-- Пустая строка для самостоятельного письма -->
+          <div class="empty-line"></div>
+        {{/if}}
+      {{/each}}
+    </div>
+
+    <div class="metadata">
+      <div class="metadata-row">
+        <span>Слов: {{metadata.wordCount}}</span>
+        <span>Символов: {{metadata.characterCount}}</span>
+        <span>Примерное время: {{metadata.estimatedTime}} мин</span>
+      </div>
+      <div class="metadata-row">
+        <span>Тип строк: {{#if (eq lineType 'narrow-with-diagonal')}}узкая с косой{{/if}}{{#if (eq lineType 'narrow-simple')}}узкая простая{{/if}}{{#if (eq lineType 'regular')}}обычная{{/if}}</span>
+        <span>Размер: {{#if (eq fontSize 'medium')}}средний{{else}}крупный{{/if}}</span>
+        <span>Стиль: {{#if (eq textStyle 'solid-gray')}}сплошной{{else}}пунктир{{/if}}</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

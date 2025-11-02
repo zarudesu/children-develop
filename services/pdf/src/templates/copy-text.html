@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>{{title}}</title>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&family=Comfortaa:wght@300;400;700&display=swap');
+
+    @font-face {
+      font-family: 'Propisi';
+      src: url('/fonts/Propisi.TTF') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    body {
+      margin: 0;
+      padding: 2cm;
+      font-size: {{#if (eq fontSize 'medium')}}12pt{{/if}}{{#if (eq fontSize 'large')}}14pt{{/if}}{{#if (eq fontSize 'extra-large')}}16pt{{/if}};
+      line-height: {{lineSpacing}};
+      {{#if (eq style 'handwritten')}}
+      font-family: "Kalam", "Comic Sans MS", cursive;
+      {{else}}
+      font-family: "Times New Roman", Times, serif;
+      {{/if}}
+      color: #000;
+      background: white;
+    }
+
+    .page-container {
+      min-height: calc(100vh - 4cm);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      margin-bottom: 1.5cm;
+    }
+
+    .title {
+      font-size: 18pt;
+      font-weight: bold;
+      margin-bottom: 0.5cm;
+      {{#if centerTitle}}
+      text-align: center;
+      {{/if}}
+    }
+
+    .instructions {
+      font-size: 11pt;
+      color: #666;
+      margin-bottom: 1cm;
+      padding: 0.5cm;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background: #f9f9f9;
+    }
+
+    .text-content {
+      flex-grow: 1;
+      {{#if preserveParagraphs}}
+      white-space: pre-line;
+      {{/if}}
+      {{#if allowWordBreaks}}
+      word-break: break-word;
+      hyphens: auto;
+      {{else}}
+      word-break: keep-all;
+      hyphens: none;
+      {{/if}}
+    }
+
+    .metadata {
+      margin-top: 1.5cm;
+      font-size: 10pt;
+      color: #888;
+      border-top: 1px solid #ddd;
+      padding-top: 0.5cm;
+    }
+
+    .metadata-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.2cm;
+    }
+
+    /* Стили для печатного текста */
+    .printed-text {
+      font-family: "Times New Roman", Times, serif;
+      letter-spacing: 0.5px;
+    }
+
+    /* Стили для рукописного текста */
+    .handwritten-text {
+      font-family: "Kalam", "Comic Sans MS", cursive;
+      letter-spacing: 0.3px;
+    }
+
+    /* Стили для печати */
+    @media print {
+      body {
+        padding: 1.5cm;
+      }
+
+      .metadata {
+        display: none;
+      }
+    }
+
+    /* Стили для больших текстов */
+    @page {
+      size: A4;
+      margin: 1.5cm;
+    }
+  </style>
+</head>
+<body>
+  <div class="page-container">
+    <div class="header">
+      <div class="title">{{title}}</div>
+
+      {{#if includeInstructions}}
+      <div class="instructions">
+        {{instructions}}
+      </div>
+      {{/if}}
+    </div>
+
+    <div class="text-content {{#if (eq style 'printed')}}printed-text{{else}}handwritten-text{{/if}}">
+      {{inputText}}
+    </div>
+
+    <div class="metadata">
+      <div class="metadata-row">
+        <span>Слов: {{metadata.wordCount}}</span>
+        <span>Символов: {{metadata.characterCount}}</span>
+        <span>Примерное время: {{metadata.estimatedTime}} мин</span>
+      </div>
+      <div class="metadata-row">
+        <span>Стиль: {{#if (eq style 'printed')}}печатный{{else}}письменный{{/if}}</span>
+        <span>Размер: {{#if (eq fontSize 'medium')}}12pt{{/if}}{{#if (eq fontSize 'large')}}14pt{{/if}}{{#if (eq fontSize 'extra-large')}}16pt{{/if}}</span>
+        <span>Интервал: {{lineSpacing}}</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

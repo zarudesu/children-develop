@@ -62,6 +62,12 @@ export function Header() {
               >
                 Тексты
               </Link>
+              <Link
+                href="/copy-text"
+                className="text-gray-600 hover:text-gray-900 font-medium transition-colors"
+              >
+                Списывание
+              </Link>
             </nav>
 
             {/* User Menu */}

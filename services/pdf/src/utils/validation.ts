@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { FilwordParams, ReadingTextParams, CrosswordParams } from '../types'
+import { FilwordParams, ReadingTextParams, CrosswordParams, CopyTextParams } from '../types'
 
 const FilwordParamsSchema = z.object({
   words: z.array(z.string().min(3).max(15).regex(/^[а-яёa-z]+$/i, 'Only Cyrillic and Latin letters allowed')).min(1).max(20),
@@ -285,6 +285,44 @@ export function validateCrosswordRequest(body: any): CrosswordValidationResult {
     return {
       success: false,
       error: 'Unknown crossword validation error'
+    }
+  }
+}
+
+// Валидация для списывания текста
+const CopyTextParamsSchema = z.object({
+  inputText: z.string().min(1, 'Input text is required').max(2000, 'Text is too long (max 2000 characters)'),
+  style: z.enum(['printed', 'handwritten']),
+  fontSize: z.enum(['medium', 'large', 'extra-large']),
+  lineSpacing: z.enum(['1.25', '1.5', '1.75']),
+  centerTitle: z.boolean(),
+  preserveParagraphs: z.boolean(),
+  allowWordBreaks: z.boolean(),
+  includeExerciseInstructions: z.boolean(),
+  title: z.string().optional()
+})
+
+export function validateCopyTextRequest(body: any): { success: boolean; error?: string; data?: CopyTextParams } {
+  try {
+    const validated = CopyTextParamsSchema.parse(body)
+
+    return {
+      success: true,
+      data: validated
+    }
+
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      const firstError = error.errors[0]
+      return {
+        success: false,
+        error: `Validation error: ${firstError.path.join('.')} - ${firstError.message}`
+      }
+    }
+
+    return {
+      success: false,
+      error: 'Unknown copy-text validation error'
     }
   }
 }
