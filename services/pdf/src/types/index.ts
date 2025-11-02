@@ -180,7 +180,7 @@ export interface CopyTextTemplateData {
 
 export interface GenerateRequest {
   type: GeneratorType
-  params: FilwordParams | ReadingTextParams | CrosswordParams | CopyTextParams
+  params: FilwordParams | ReadingTextParams | CrosswordParams | CopyTextParams | HandwritingParams
 }
 
 export interface TemplateData {
