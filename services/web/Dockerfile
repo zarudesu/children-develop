@@ -28,6 +28,15 @@ RUN npm ci --only=production --silent && npm cache clean --force
 COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
+# Create data directory and copy template for global stats
+RUN mkdir -p /app/data
+COPY --from=builder --chown=nextjs:nodejs /app/data/global-stats.json.template /app/data/
+
+# Initialize global-stats.json if it doesn't exist (at build time)
+RUN if [ ! -f /app/data/global-stats.json ]; then \
+      cp /app/data/global-stats.json.template /app/data/global-stats.json; \
+    fi
+
 # Switch to non-root user
 USER nextjs
 

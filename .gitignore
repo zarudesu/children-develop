@@ -107,6 +107,15 @@ DEPLOYMENT_CREDENTIALS.md
 *.pem
 *_rsa
 *_ed25519
+childdev_prod*
+id_rsa*
+id_ed25519*
+
+# SSH keys and deployment secrets
+~/.ssh/childdev_prod*
+scripts/*.key
+scripts/*.pub
+scripts/deploy-secrets.sh
 
 # Production deployment logs
 pdf-build.log
@@ -127,3 +136,6 @@ debug-*.pdf
 services/*/dist/
 services/*/.next/
 services/*/build/
+
+# Global statistics data (changes frequently)
+services/web/data/global-stats.json

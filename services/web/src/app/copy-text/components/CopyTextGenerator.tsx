@@ -347,7 +347,7 @@ export function CopyTextGenerator({
                 fontSize: FONT_SIZE_SETTINGS[params.fontSize].cssSize,
                 lineHeight: LINE_SPACING_SETTINGS[params.lineSpacing].cssValue,
                 fontFamily: params.style === 'handwritten'
-                  ? '"Kalam", "Comic Sans MS", cursive'
+                  ? '"Propisi", "Kalam", "Comic Sans MS", cursive'
                   : '"Times New Roman", serif'
               }}
             >

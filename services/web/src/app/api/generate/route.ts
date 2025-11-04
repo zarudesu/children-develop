@@ -7,11 +7,13 @@ import { generateCrosswordHTML } from '../../crossword/utils/htmlGenerator'
 import { FilwordParams } from '../../filword/types'
 import { ReadingTextParams } from '../../reading-text/types'
 import { CrosswordParams } from '../../crossword/types'
+import { CopyTextParams, CopyTextParamsSchema } from '../../copy-text/types'
 
 type GenerateRequest =
   | { type: 'filword', params: FilwordParams }
   | { type: 'reading-text', params: ReadingTextParams }
   | { type: 'crossword', params: CrosswordParams }
+  | { type: 'copy-text', params: CopyTextParams }
   | FilwordParams // обратная совместимость
 
 export async function POST(request: NextRequest) {

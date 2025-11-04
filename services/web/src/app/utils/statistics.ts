@@ -60,8 +60,8 @@ class StatisticsService {
   }
 
   // Записать событие скачивания
-  recordDownload(type: 'filword' | 'reading-text' | 'crossword', metadata?: { gridSize?: string; textType?: string }) {
-    // Обновляем статистику
+  recordDownload(type: 'filword' | 'reading-text' | 'crossword' | 'copy-text' | 'handwriting', metadata?: { gridSize?: string; textType?: string }) {
+    // Обновляем локальную статистику
     const stats = this.getStats()
     if (type === 'filword') {
       stats.filword++
@@ -76,7 +76,7 @@ class StatisticsService {
 
     // Записываем детальное событие
     const event: DownloadEvent = {
-      type,
+      type: type as 'filword' | 'reading-text' | 'crossword',
       gridSize: metadata?.gridSize,
       textType: metadata?.textType,
       timestamp: new Date().toISOString(),
@@ -87,6 +87,30 @@ class StatisticsService {
 
     // Уведомляем подписчиков
     this.notifyStatsChanged(stats)
+
+    // Отправляем на сервер для глобальной статистики (не блокирующий запрос)
+    this.updateGlobalStats(type)
+  }
+
+  // Обновление глобальной статистики на сервере
+  private async updateGlobalStats(type: string) {
+    try {
+      // Преобразуем тип для API
+      const apiType = type === 'reading-text' ? 'readingText'
+                    : type === 'copy-text' ? 'copyText'
+                    : type
+
+      await fetch('/api/stats/global', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ type: apiType })
+      })
+    } catch (error) {
+      // Игнорируем ошибки - глобальная статистика не критична
+      console.warn('Failed to update global stats:', error)
+    }
   }
 
   // Сохранение события

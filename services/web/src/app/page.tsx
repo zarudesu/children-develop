@@ -25,7 +25,8 @@ export default function HomePage() {
             <p className="text-xl sm:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto">
               Создавайте дидактические материалы
               <span className="font-semibold text-blue-600">за 2 минуты</span>.
-              Готовые PDF с заданиями и ответами.
+              Готовые PDF с заданиями и ответами. <br/>
+              <span className="text-lg text-green-600 font-medium">✅ 5 генераторов уже работают!</span>
             </p>
             
 
@@ -63,6 +64,28 @@ export default function HomePage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
               </Link>
+
+              <Link
+                href="/copy-text"
+                className="inline-flex items-center gap-3 bg-gradient-to-r from-orange-600 to-red-600 text-white px-8 py-4 rounded-lg font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
+              >
+                <span className="text-xl">✍️</span>
+                Списывание текста
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </Link>
+
+              <Link
+                href="/handwriting"
+                className="inline-flex items-center gap-3 bg-gradient-to-r from-pink-600 to-purple-600 text-white px-8 py-4 rounded-lg font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
+              >
+                <span className="text-xl">✒️</span>
+                Прописи
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </Link>
             </div>
 
             {/* All Generators Link */}
@@ -95,11 +118,11 @@ export default function HomePage() {
               Наши конструкторы (генераторы)
             </h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Выберите подходящий инструмент
+              5 готовых инструментов для создания дидактических материалов
             </p>
           </div>
 
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 max-w-full mx-auto">
             {/* Филворды */}
             <GeneratorCard
               title="Филворды"
@@ -133,12 +156,12 @@ export default function HomePage() {
               isNew={true}
             />
 
-            {/* Планируемые генераторы */}
+            {/* Кроссворды */}
             <GeneratorCard
               title="Кроссворды"
               description="Классические и тематические кроссворды с автоматической генерацией сетки и подсказок."
               icon="🔤"
-              href="#"
+              href="/crossword"
               difficulty={['Легко', 'Средне', 'Сложно']}
               ageGroups={['8-10 лет', '11-15 лет', '16+ лет']}
               features={[
@@ -147,7 +170,40 @@ export default function HomePage() {
                 'Настройка сложности',
                 'Красивые шаблоны'
               ]}
-              isComingSoon={true}
+            />
+
+            {/* Списывание текста */}
+            <GeneratorCard
+              title="Списывание текста"
+              description="Тексты для развития каллиграфии с настраиваемыми шрифтами и стилями."
+              icon="✍️"
+              href="/copy-text"
+              difficulty={['Легко', 'Средне', 'Сложно']}
+              ageGroups={['5-7 лет', '8-12 лет', '13+ лет']}
+              features={[
+                'Печатный и письменный стиль',
+                'Настройка размера шрифта',
+                'Прописной шрифт',
+                'Готовые тексты'
+              ]}
+              isNew={true}
+            />
+
+            {/* Прописи */}
+            <GeneratorCard
+              title="Прописи"
+              description="Листы для обучения письму с элементами букв, словами и предложениями."
+              icon="✒️"
+              href="/handwriting"
+              difficulty={['Легко', 'Средне', 'Сложно']}
+              ageGroups={['4-6 лет', '7-9 лет', '10+ лет']}
+              features={[
+                'Элементы букв',
+                'Строчные и заглавные',
+                'Слова и предложения',
+                'Линии-помощники'
+              ]}
+              isNew={true}
             />
           </div>
         </div>
@@ -227,11 +283,11 @@ export default function HomePage() {
               Создать филворд
             </Link>
             <Link
-              href="/reading-text"
+              href="/generators"
               className="inline-flex items-center gap-3 bg-white/10 backdrop-blur text-white border border-white/20 px-8 py-4 rounded-lg font-semibold text-lg shadow-lg hover:shadow-xl hover:bg-white/20 transform hover:scale-105 transition-all"
             >
-              <span className="text-xl">📖</span>
-              Тексты для чтения
+              <span className="text-xl">🎯</span>
+              Все генераторы
             </Link>
           </div>
         </div>
