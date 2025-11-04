@@ -30,12 +30,15 @@ COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
 # Create data directory and copy template for global stats
 RUN mkdir -p /app/data
-COPY --from=builder --chown=nextjs:nodejs /app/data/global-stats.json.template /app/data/
+COPY --from=builder /app/data/global-stats.json.template /app/data/
 
 # Initialize global-stats.json if it doesn't exist (at build time)
 RUN if [ ! -f /app/data/global-stats.json ]; then \
       cp /app/data/global-stats.json.template /app/data/global-stats.json; \
     fi
+
+# Set ownership for data directory (before switching to nextjs user)
+RUN chown -R nextjs:nodejs /app/data
 
 # Switch to non-root user
 USER nextjs
