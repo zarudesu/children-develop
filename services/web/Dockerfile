@@ -32,10 +32,9 @@ COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 RUN mkdir -p /app/data
 COPY --from=builder /app/data/global-stats.json.template /app/data/
 
-# Initialize global-stats.json if it doesn't exist (at build time)
-RUN if [ ! -f /app/data/global-stats.json ]; then \
-      cp /app/data/global-stats.json.template /app/data/global-stats.json; \
-    fi
+# Copy entrypoint script
+COPY --from=builder /app/docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Set ownership for data directory (before switching to nextjs user)
 RUN chown -R nextjs:nodejs /app/data
@@ -49,6 +48,9 @@ EXPOSE 3000
 # Add health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1
+
+# Use entrypoint for initialization
+ENTRYPOINT ["docker-entrypoint.sh"]
 
 # Start Next.js server
 CMD ["npm", "run", "start"]
