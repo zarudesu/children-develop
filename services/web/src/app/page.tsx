@@ -14,7 +14,7 @@ export default function HomePage() {
               </div>
             </div>
             
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 px-4 sm:px-0">
               <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 Конструкторы развивающих
               </span>
@@ -22,69 +22,69 @@ export default function HomePage() {
               <span className="text-gray-900">заданий</span>
             </h1>
             
-            <p className="text-xl sm:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto">
+            <p className="text-lg sm:text-xl md:text-2xl text-gray-600 mb-6 sm:mb-8 max-w-3xl mx-auto px-4 sm:px-0">
               Создавайте дидактические материалы
-              <span className="font-semibold text-blue-600">за 2 минуты</span>.
+              <span className="font-semibold text-blue-600"> за 2 минуты</span>.
               Готовые PDF с заданиями и ответами. <br/>
-              <span className="text-lg text-green-600 font-medium">✅ 5 генераторов уже работают!</span>
+              <span className="text-base sm:text-lg text-green-600 font-medium">✅ 5 генераторов уже работают!</span>
             </p>
             
 
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
+            {/* Primary CTA Buttons - Top 3 Most Popular */}
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-6 sm:mb-8 px-2 sm:px-0">
               <Link
                 href="/filword"
-                className="inline-flex items-center gap-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-lg font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
+                className="group relative inline-flex items-center justify-center gap-2 sm:gap-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-semibold text-base sm:text-lg shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all overflow-hidden"
               >
-                <span className="text-xl">🧩</span>
-                Создать филворд
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-              </Link>
-
-              <Link
-                href="/crossword"
-                className="inline-flex items-center gap-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-4 rounded-lg font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
-              >
-                <span className="text-xl">🔤</span>
-                Создать кроссворд
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity"></div>
+                <span className="text-2xl">🧩</span>
+                <span>Филворды</span>
+                <svg className="w-5 h-5 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
               </Link>
 
               <Link
                 href="/reading-text"
-                className="inline-flex items-center gap-3 bg-gradient-to-r from-green-600 to-blue-600 text-white px-8 py-4 rounded-lg font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
+                className="group relative inline-flex items-center justify-center gap-2 sm:gap-3 bg-gradient-to-r from-green-600 to-blue-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-semibold text-base sm:text-lg shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all overflow-hidden"
               >
-                <span className="text-xl">📖</span>
-                Тексты для чтения
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity"></div>
+                <span className="text-2xl">📖</span>
+                <span>Тексты для чтения</span>
+                <svg className="w-5 h-5 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
               </Link>
 
               <Link
                 href="/copy-text"
-                className="inline-flex items-center gap-3 bg-gradient-to-r from-orange-600 to-red-600 text-white px-8 py-4 rounded-lg font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
+                className="group relative inline-flex items-center justify-center gap-2 sm:gap-3 bg-gradient-to-r from-orange-600 to-red-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-semibold text-base sm:text-lg shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all overflow-hidden"
               >
-                <span className="text-xl">✍️</span>
-                Списывание текста
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity"></div>
+                <span className="text-2xl">✍️</span>
+                <span>Списывание</span>
+                <svg className="w-5 h-5 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
+              </Link>
+            </div>
+
+            {/* Secondary Generators - Compact Display */}
+            <div className="flex flex-wrap justify-center gap-3 mb-6">
+              <Link
+                href="/crossword"
+                className="inline-flex items-center gap-2 bg-white border-2 border-purple-200 text-purple-700 px-6 py-3 rounded-lg font-medium hover:border-purple-400 hover:bg-purple-50 transition-all"
+              >
+                <span>🔤</span>
+                <span>Кроссворды</span>
               </Link>
 
               <Link
                 href="/handwriting"
-                className="inline-flex items-center gap-3 bg-gradient-to-r from-pink-600 to-purple-600 text-white px-8 py-4 rounded-lg font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
+                className="inline-flex items-center gap-2 bg-white border-2 border-pink-200 text-pink-700 px-6 py-3 rounded-lg font-medium hover:border-pink-400 hover:bg-pink-50 transition-all"
               >
-                <span className="text-xl">✒️</span>
-                Прописи
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
+                <span>✒️</span>
+                <span>Прописи</span>
               </Link>
             </div>
 

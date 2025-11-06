@@ -12,6 +12,7 @@ import {
   FONT_FAMILY_SETTINGS
 } from '../types'
 import { generatePreviewText, getTransformationDescription } from '../utils/previewGenerator'
+import { LoadingOverlay } from '../../../components/LoadingOverlay'
 
 interface ReadingTextGeneratorProps {
   onGenerate?: (params: ReadingTextParams) => void
@@ -187,7 +188,16 @@ export default function ReadingTextGenerator({
   const isValidInput = hasEnoughWords && hasEnoughChars && hasCyrillic
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6 max-w-4xl mx-auto">
+    <div className="bg-white rounded-lg shadow-lg p-6 max-w-4xl mx-auto relative">
+      {/* Loading Overlay */}
+      {loading && (
+        <LoadingOverlay
+          title="Создаём ваше упражнение..."
+          description="Генерируем PDF с выбранными трансформациями текста"
+        />
+      )}
+
+    <div>
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-800 mb-2">
           Конструктор текстов для чтения
